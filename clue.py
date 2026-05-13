@@ -20,10 +20,16 @@ show_prompt= False
 show_popup = False
 
 #Clue2
-clue2 = pygame.Rect(500, 500, 50, 50) #just a placeholder cause im not sure of the exact position
+clue2 = pygame.Rect(400, 350, 50, 50) #just a placeholder cause im not sure of the exact position
 clue2_active = True
 show_prompt2 = False
 show_popup2 = False
+
+#Clue3
+clue3 = pygame.Rect(500, 400, 50, 50) #just a placeholder cause im not sure of the exact position
+clue3_active = True
+show_prompt3 = False
+show_popup3 = False
 
 clock = pygame.time.Clock()
 run = True
@@ -53,11 +59,18 @@ while run:
                 show_popup2 = True
                 clue2_active = False
 
+            if event.key == K_r and show_prompt3 and clue3_active:
+                show_popup3 = True
+                clue3_active = False
+
             elif event.key == K_c and show_popup: # Press C to close popup 
                 show_popup = False
 
-            elif event.key == K_c and show_popup2: # Press C to close popup
+            elif event.key == K_c and show_popup2: 
                 show_popup2 = False
+
+            elif event.key == K_c and show_popup3: 
+                show_popup3 = False        
 
 
     # Check if player is in clue1 area
@@ -72,12 +85,19 @@ while run:
     else:        
         show_prompt2 = False
 
+    # Check if player is in clue3 area
+    if clue3_active and player_rect.colliderect(clue3):
+        show_prompt3 = True
+    else:
+        show_prompt3 = False
+
     #TEST 
     screen.fill((200, 200, 200))
     pygame.draw.rect(screen, (0, 0, 255), player_rect) #player
     pygame.draw.rect(screen, (255, 0, 0), clue1) 
     pygame.draw.rect(screen, (0, 255, 0), clue2)
-    
+    pygame.draw.rect(screen, (255, 255, 0), clue3)
+
     # Display prompt to press R
     if show_prompt:
         prompt_text = font.render("Press R", True, (0,0,0))
@@ -85,7 +105,11 @@ while run:
 
     if show_prompt2:
         prompt_text2 = font.render("Press R", True, (0,0,0))
-        screen.blit(prompt_text, (clue2.x, clue2.y - 30))
+        screen.blit(prompt_text2, (clue2.x, clue2.y - 30))
+
+    if show_prompt3:
+        prompt_text3 = font.render("Press R", True, (0,0,0))
+        screen.blit(prompt_text3, (clue3.x, clue3.y - 30))
 
     # Show popup with clue information
     #Clue1
@@ -119,6 +143,21 @@ while run:
         clue2_text2 = font.render("The Door besides it holds it still.", True, (0,0,0))
         screen.blit(clue2_text1, (popup_x + 20, popup_y + 40))
         screen.blit(clue2_text2, (popup_x + 20, popup_y + 70))
+        screen.blit(close_text, (popup_rect.x+20, popup_rect.y+130))
+
+    if show_popup3:
+        popup_width, popup_height = 400, 200
+        popup_x = (screen_width - popup_width) // 2
+        popup_y = (screen_height - popup_height) // 2
+        popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
+
+        pygame.draw.rect(screen, (250,250,250), popup_rect) #box
+        pygame.draw.rect(screen, (153,204,255), popup_rect, 2) #border
+
+        clue3_text1 = font.render("Use this item to trap", True, (0,0,0))
+        clue3_text2 = font.render("one of the enemies temporarily.", True, (0,0,0))
+        screen.blit(clue3_text1, (popup_x + 20, popup_y + 40))
+        screen.blit(clue3_text2, (popup_x + 20, popup_y + 70))
         screen.blit(close_text, (popup_rect.x+20, popup_rect.y+130))
 
     pygame.display.flip()
