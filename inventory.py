@@ -40,6 +40,19 @@ class Inventory:
         else:
             print("Your inventory is empty.")
 
+    # Remove item after use
+    def use_item(self, item, target):
+        if self.has_item(item):
+            self.remove_item(item)  # consume item
+
+            if isinstance(target, Door) and item == target.required_key:
+                target.unlock()
+                print(f"{target.name} unlocked with {item}!")
+            else:
+                print(f"{item} used, but nothing happened.")
+        else:
+            print(f"You don't have {item} in your inventory.")
+
 # Keys
 JANITOR_KEY = "janitor_key"
 ROOM_210_KEY = "room_210_key"
@@ -55,11 +68,7 @@ WEAPON_1 = "weapon_piece_1"
 WEAPON_2 = "weapon_piece_2"
 WEAPON_3 = "weapon_piece_3"
 
-
-# --------------------
 # TEST / DEMO
-# --------------------
-
 if __name__ == "__main__":
     inventory = Inventory()
 
