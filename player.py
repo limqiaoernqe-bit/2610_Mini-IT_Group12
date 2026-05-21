@@ -109,6 +109,11 @@ class Player:
                 self.image = self.idle_back
 
     
-    def draw(self, screen):
-        rect = self.image.get_rect(midbottom=(self.x, self.y))
-        screen.blit(self.image, rect)
+    def draw(self, screen, camera_x, camera_y):
+            rect = self.image.get_rect(
+                midbottom=(
+                    self.x - camera_x,
+                    self.y - camera_y 
+                )
+            )
+            screen.blit(self.image, rect)
