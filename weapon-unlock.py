@@ -99,7 +99,7 @@ Weapons = {
 # Popup system
 show_popup4 = False
 popup_start_time = 0
-popup_duration = 3
+popup_duration = 2
 popup_message = ""
 
 def show_prompt(screen, font, player_rect, weapon):
@@ -108,6 +108,29 @@ def show_prompt(screen, font, player_rect, weapon):
         screen.blit(text, (weapon["zone"].x, weapon["zone"].y - 30))
         return True
     return False
+
+def draw_text(surface, text, rect, font, color):
+    words = text.split(" ")
+    lines = []
+    line = ""
+    for word in words:
+        test_line = line + word + " "
+        if font.size(test_line)[0] < rect.width - 40:
+            line = test_line
+        else:
+            lines.append(line)
+            line = word + " "
+    lines.append(line)
+
+    line_height = font.size("Tg")[1]
+    total_height =len(lines) * line_height
+    y = rect.y + (rect.height - total_height) // 2
+
+    for line in lines:
+        text_surface = font.render(line, True, color)
+        text_rect = text_surface.get_rect(centerx=rect.centerx, y=y)
+        surface.blit(text_surface, text_rect)
+        y += line_height
 
 clock = pygame.time.Clock()
 run = True
@@ -152,14 +175,35 @@ while run:
 
         # popup box
         if show_popup4:
-           popup_width, popup_height = 400, 200
-           popup_x = (screen_width - popup_width) // 2
-           popup_y = (screen_height - popup_height) // 2
-           popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
-           pygame.draw.rect(screen, (250,250,250), popup_rect) #box
-           pygame.draw.rect(screen, (153,204,255), popup_rect, 2) #border
-           text = font.render(popup4_message, True, (0, 0, 0))
-           screen.blit(text, (popup_rect.x + 20, popup_rect.y + 20))
+            popup_width = 400
+            line_height = font.size("Tg")[1]
+            words = popup4_message.split(" ")
+            lines, line = [], ""
+            for word in words:
+                test_line = line + word + " "
+                if font.size(test_line)[0] < popup_width - 40:
+                    line = test_line
+                else:
+                    lines.append(line)
+                    line = word + " "
+            lines.append(line)
+            total_height = len(lines) * line_height + 40
+            popup_height = max (200, total_height)
+
+            popup_x = (screen_width - popup_width) // 2
+            popup_y = (screen_height - popup_height) // 2
+            popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
+
+            pygame.draw.rect(screen, (255, 255, 255), popup_rect)
+            pygame.draw.rect(screen, (153,204,255), popup_rect, 2)
+
+            y = popup_rect.y + (popup_rect.height - total_height) //2
+            for line in lines:
+                text_surface = font.render(line, True, (0, 0, 0))
+                text_rect = text_surface.get_rect(centerx=popup_rect.centerx)
+                text_rect.y = y
+                screen.blit(text_surface, text_rect)
+                y += line_height
 
         pygame.display.flip()
         clock.tick(60)
