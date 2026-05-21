@@ -1,5 +1,5 @@
 import pygame
-SCALE_SIZE = (48, 48)
+SCALE_SIZE = (120, 120)
 class Player:
     def __init__(self):
         self.x = 400
