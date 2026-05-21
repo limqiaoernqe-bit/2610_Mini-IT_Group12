@@ -76,37 +76,44 @@ class Janitor:
         dx = player_x - self.x
         dy = player_y - self.y
 
-      
+        # stop distance check (unchanged)
         if abs(dx) < self.stop_distance and abs(dy) < self.stop_distance:
-            self.image = self.idle_front if self.direction == "front" else self.idle_back
+            if self.direction == "back":
+                self.image = self.idle_back
+            else:
+                self.image = self.idle_front
             return
 
-       
-        if abs(dx) > abs(dy):
+        # movement + animation logic (FIXED DIAGONAL ISSUE)
 
+        # PRIORITY: vertical movement controls animation (prevents sprite flicker)
+        if dy < 0:
+            # moving up (including diagonals)
+            self.y -= self.speed
+            self.direction = "back"
+            self.set_frames(self.walk_back)
+
+        elif dy > 0:
+            # moving down (including diagonals)
+            self.y += self.speed
+            self.direction = "front"
+            self.set_frames(self.walk_front)
+
+        else:
+            # only horizontal movement if no vertical movement
             if dx > 0:
                 self.x += self.speed
                 self.direction = "right"
                 self.set_frames(self.walk_right)
 
-            else:
+            elif dx < 0:
                 self.x -= self.speed
                 self.direction = "left"
                 self.set_frames(self.walk_left)
 
-        else:
-
-            if dy > 0:
-                self.y += self.speed
-                self.direction = "front"
-                self.set_frames(self.walk_front)
-
-            else:
-                self.y -= self.speed
-                self.direction = "back"
-                self.set_frames(self.walk_back)
-
+        # apply animation frame
         self.image = self.animate()
+
 
  
     def draw(self, screen):
