@@ -1,7 +1,9 @@
 import pygame
 
 from player import Player
-from enemy import Janitor
+from janitor import Janitor
+from receptionist import Receptionist
+from ghost import Ghost
 
 
 import sys
@@ -37,6 +39,10 @@ gameover_quit_button = pygame.Rect(500, 600, 250, 80)
 
 player = Player()
 janitor = Janitor(700, 300)
+# TEMP TEST SPAWNS (REMOVE LATER)
+
+ghost = Ghost(500, 300)
+receptionist = Receptionist(800, 300)
 player_speed = 5
 
 
@@ -89,16 +95,18 @@ while running:
         keys = pygame.key.get_pressed()
 
         player.update(keys)
+
         janitor.update(player.x, player.y)
+        ghost.update(player.x, player.y)
+        receptionist.update(player.x, player.y)
 
         # DEPTH SORTING
-        sprites = [player, janitor]
+        sprites = [player, janitor, ghost, receptionist]
 
         sprites.sort(key=lambda sprite: sprite.y)
 
         for sprite in sprites:
             sprite.draw(screen)
-
 
         if keys[pygame.K_k]:
             game_state = "gameover"
