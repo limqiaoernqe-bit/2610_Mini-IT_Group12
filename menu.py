@@ -89,10 +89,15 @@ while running:
         keys = pygame.key.get_pressed()
 
         player.update(keys)
-        player.draw(screen)
-
         janitor.update(player.x, player.y)
-        janitor.draw(screen)
+
+        # DEPTH SORTING
+        sprites = [player, janitor]
+
+        sprites.sort(key=lambda sprite: sprite.y)
+
+        for sprite in sprites:
+            sprite.draw(screen)
 
 
         if keys[pygame.K_k]:

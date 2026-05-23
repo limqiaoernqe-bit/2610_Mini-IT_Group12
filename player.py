@@ -117,3 +117,7 @@ class Player:
                 )
             )
             screen.blit(self.image, rect)
+#later delete after all enemy movement finish
+    def draw(self, screen):
+        rect = self.image.get_rect(midbottom=(self.x, self.y))
+        screen.blit(self.image, rect)
