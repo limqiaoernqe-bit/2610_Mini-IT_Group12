@@ -14,57 +14,64 @@ font = pygame.font.Font(None,30)
 player_rect = pygame.Rect(100, 100, 50,50)
 player_speed = 7
 
-#For puzzle
-answer= ""
-solution = "206"
-puzzle_message= "Complete the puzzle to figure out where your friend is hiding."
-puzzle_message2= "Input the number of treadmills, balls and dumbells you see."
-puzzle_message3= "Press C to close the puzzle."
-end_message = " "
 inventory = []
-show_puzzle = False
-show_prompt = False
 
-#Trigger zone for puzzle (when player co)
-treadmill= pygame.Rect(300, 300, 50, 50) #just a placeholder cause im not sure of the exact position
-treadmill_active = True
+Puzzle = {
+   "Treadmill":{
+      "zone": pygame.Rect(300,300,50,50),
+      "prompt": "R",
+      "collected": False,
+      "solution": "206",
+      "answer": "",
+      "active": False,
+      "end_message":""
+   }
+}
+def show_prompt(screen, font, player_rect, item):
+   # Show R if player is around the zone
+   if not item["collected"] and player_rect.colliderect(item["zone"]):
+      text = font.render(item["prompt"], True, (0,0,0))
+      screen.blit(text,(item["zone"].x, item["zone"].y - 30))
+      return True
+   return False
 
-input_rect = pygame.Rect(60, 140, 200, 30) #box for user input
-color = pygame.Color('lightskyblue3') #color of input box
-
-def puzzle_screen():
-    screen.fill((0,0,0))
+def puzzle_screen(puzzle):
 
     #Text box
-    box_rect= pygame.Rect(40, 40, 720, 250)
+    box_width = 720
+    box_height = 250
+
+    #To make the box in center
+    box_x = (screen_width - box_width) // 2
+    box_y = (screen_height - box_height) //2
+
+    box_rect = pygame.Rect(box_x, box_y, box_width, box_height)
+
     pygame.draw.rect(screen, (250,250,250), box_rect) #color of box bg
     pygame.draw.rect(screen, (153,204,255), box_rect, 4) #color of border
 
-    #Input Box
-    pygame.draw.rect(screen, color, input_rect, 2)
+    msg1 = font.render("Complete the puzzle to find where you friend is hiding", True, (0,0,0))
+    msg2 = font.render("Input the number of treadmills, balls and dumbells you see.", True, (0,0,0))
+    msg3 = font.render("Press C to close the puzzle", True, (255,0,0))
+    screen.blit(msg1, (box_x + 20, box_y + 20))
+    screen.blit(msg2, (box_x + 20, box_y + 50))
+    screen.blit(msg3, (box_x + 20, box_y + 80))
 
-    #Display message and clue
-    message_text = font.render(puzzle_message, True, (0,0,0))
-    screen.blit(message_text, (60,60))
+    input_rect = pygame.Rect(box_x + 20, box_y + 110,200,30)
+    pygame.draw.rect(screen, pygame.Color('lightskyblue3'), input_rect, 2)
+    input_text = font.render(puzzle["answer"], True, (153,204,255))
+    screen.blit(input_text, (input_rect.x + 5, input_rect.y +5))
 
-    message2_text = font.render(puzzle_message2, True, (0,0,0))
-    screen.blit(message2_text, (60,80))
-
-    message3_text = font.render(puzzle_message3, True, ('red'))
-    screen.blit(message3_text, (60,115))
-
-    #players input code
-    input_text = font.render(answer,True, (153,204,255))
-    screen.blit(input_text,(input_rect.x + 5, input_rect.y + 5))
-
-    if end_message:
-        end_text = font.render(end_message, True, (204, 204,0))
-        screen.blit(end_text, (60, 180))
-
+    if puzzle["end_message"]:
+       end_text = font.render(puzzle["end_message"], True, (204,204,0))
+       screen.blit(end_text,(60,180))
 
 clock = pygame.time.Clock()
 run = True
+active_puzzle = None
+
 while run :
+    clock.tick(60)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
@@ -77,48 +84,42 @@ while run :
             elif event.key == K_DOWN: player_rect.y += player_speed
 
 # Player has to press R to open puzzle
-            if event.key == K_r and treadmill_active and show_prompt:
-                    show_puzzle= True
-            if event.key == K_c and show_puzzle:
-                    show_puzzle = False
+            if event.key == K_r:
+               for name, puzzle in Puzzle.items():
+                  if player_rect.colliderect(puzzle["zone"])and not puzzle["collected"]:
+                     puzzle["active"] = True
+                     active_puzzle = puzzle
 
+            if event.key == K_c and active_puzzle:
+                active_puzzle["active"] = False
+                active_puzzle = None
 
-            if show_puzzle and event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_BACKSPACE:
-                 answer = answer[:-1]
-                else:
-                  answer += event.unicode
-
-                if event.key == pygame.K_RETURN:
-                  if answer.strip() == solution:
-                    end_message = "Correct! Key to Door 206 is in your inventory."
-                    treadmill_active = False
-                    puzzle= False
-                    inventory.append('Door Key 206')
+            if active_puzzle and active_puzzle["active"]:
+               puzzle_screen(active_puzzle)
+               if event.key == K_BACKSPACE:
+                  active_puzzle["answer"] = active_puzzle["answer"][:-1]
+               elif event.key == K_RETURN:
+                  if active_puzzle ["answer"].strip() == active_puzzle["solution"]:
+                     active_puzzle["collected"] = True
+                     active_puzzle["end_message"] = "Correct! Key to Door 206 is in your inventory."
+                     inventory.append("Door Key 206")
                   else:
-                    end_message= "Wrong answer. Try again!"
-                    answer ="" #resets it
+                        active_puzzle["end_message"] = "Wrong answer. Try again!"
+                        active_puzzle["answer"] = ""
+               else:
+                    active_puzzle["answer"] += event.unicode
 
 #TEST
     screen.fill((200,200,200))
     pygame.draw.rect(screen, (255,0,0), player_rect)
-    pygame.draw.rect(screen, (0,255,0), treadmill)
 
-# check if player is in treadmill zone
-    if treadmill_active and player_rect.colliderect(treadmill):
-     show_prompt = True
-    else:
-      show_prompt = False
+    for name, puzzle in Puzzle.items():
+        pygame.draw.rect(screen, (0,255,0), puzzle["zone"],2)
+        show_prompt(screen, font, player_rect, puzzle)
 
-    if show_prompt and not show_puzzle:
-     prompt_text = font.render("Press R to solve the puzzle", True, (0,0,0))
-     screen.blit(prompt_text, (treadmill.x, treadmill.y - 30))
-
-# Show puzzle if active
-    if show_puzzle:
-     puzzle_screen()
+    if active_puzzle and active_puzzle["active"]:
+        puzzle_screen(active_puzzle)
 
     pygame.display.flip()
-    clock.tick(60)      
 
 pygame.quit()
