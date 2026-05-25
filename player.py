@@ -69,44 +69,39 @@ class Player:
         return frames[int(self.frame)]
 
     
-    def update(self, keys):
-        moving = False
+    def update(self, keys, walls):
+            moving = False
 
-     
-        if keys[pygame.K_RIGHT]:
-            self.x += self.speed
-            self.image = self.animate(self.walk_right)
-            self.direction = "right"
-            moving = True
-
-      
-        elif keys[pygame.K_LEFT]:
-            self.x -= self.speed
-            self.image = self.animate(self.walk_left)
-            self.direction = "left"
-            moving = True
-
-       
-        elif keys[pygame.K_DOWN]:
-            self.y += self.speed
-            self.image = self.animate(self.walk_front)
-            self.direction = "front"
-            moving = True
+            dx = 0
+            dy = 0
 
         
-        elif keys[pygame.K_UP]:
-            self.y -= self.speed
-            self.image = self.animate(self.walk_back)
-            self.direction = "back"
-            moving = True
+            if keys[pygame.K_RIGHT]:
+                dx = self.speed
+                self.image = self.animate(self.walk_right)
+                self.direction = "right"
+                moving = True
 
-       
-        if not moving:
-            self.frame = 0
-            if self.direction == "front":
-                self.image = self.idle_front
-            elif self.direction == "back":
-                self.image = self.idle_back
+        
+            elif keys[pygame.K_LEFT]:
+                dx = -self.speed
+                self.image = self.animate(self.walk_left)
+                self.direction = "left"
+                moving = True
+
+        
+            elif keys[pygame.K_DOWN]:
+                dy = self.speed
+                self.image = self.animate(self.walk_front)
+                self.direction = "front"
+                moving = True
+
+            
+            elif keys[pygame.K_UP]:
+                dy = -self.speed
+                self.image = self.animate(self.walk_back)
+                self.direction = "back"
+                moving = True
 
     
     def draw(self, screen, camera_x, camera_y):
