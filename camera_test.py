@@ -17,6 +17,35 @@ clock = pygame.time.Clock()
 tmx_data = pytmx.load_pygame("level2_map.tmx")
 TILE_SIZE = tmx_data.tilewidth
 
+#Collision layers
+collision_layers = [
+    "Collision",
+    "stairs collision",
+    "rooms collision"
+]
+
+walls = []
+
+# Create collision recctangles
+for layer in tmx_data.visible_layers:
+
+    if isinstance(layer, pytmx.TiledTileLayer):
+
+        if layer.name in collision_layers:
+
+            for x, y, gid in layer:
+
+                if gid != 0:
+
+                    wall_rect = pygame.Rect(
+                        x * TILE_SIZE,
+                        y * TILE_SIZE,
+                        TILE_SIZE,
+                        TILE_SIZE
+                    )
+
+                    walls.append(wall_rect)
+
 # Create Player
 player = Player()
 
@@ -50,7 +79,7 @@ while running:
     # Player Movement
     keys = pygame.key.get_pressed()
     
-    player.update(keys)
+    player.update(keys, walls) 
 
     # Camera System
     camera_x = player.x - SCREEN_WIDTH // 2
