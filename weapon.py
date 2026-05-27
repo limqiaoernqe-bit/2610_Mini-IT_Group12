@@ -6,6 +6,8 @@ import os
 BASE_DIR = os.path.dirname(__file__)
 ASSET_DIR = os.path.join(BASE_DIR, 'assets')
 pygame.init ()
+pygame.mixer.init()
+
 screen_width = 800
 screen_height = 800
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -20,6 +22,10 @@ player_speed = 7
 inventory = []
 main_weapon_unlocked = False
 main_weapon_popup_shown = False
+
+#Sound
+unlock_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "unlock.wav"))
+mw_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "full.wav"))
 
 # Weapon Zone
 Weapons = {
@@ -113,7 +119,7 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "MWfull.png")).convert_alpha(), (100,100)),
         "image transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "MWfull.png")).convert_alpha(),(100,100)),
-        "popup_text": "Full weapon unlocked"
+        "popup_text": "Full weapon unlocked! Use it to kill the ghost!"
     }
 }
 # Popup system
@@ -161,7 +167,6 @@ def pieces_collected ():
         Weapons["MWpiece3"]["collected"]
     ])
 
-
 clock = pygame.time.Clock()
 run = True
 
@@ -187,6 +192,7 @@ while run:
                for name, weapon in Weapons.items():
                    if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
                       weapon["collected"] = True
+                      unlock_sound.play()
                       inventory.append(name)
 
                       if pieces_collected() == 3 and not main_weapon_unlocked:
@@ -195,6 +201,7 @@ while run:
                           inventory.append("MWfull")
                           main_weapon_popup_shown = True
                           popup_start_time = pygame.time.get_ticks()
+                          mw_sound.play()
                       else:
                          show_popup = True
                          popup_start_time = pygame.time.get_ticks()
@@ -216,6 +223,12 @@ while run:
                 screen.blit(weapon["image"], weapon["zone"].topleft)
              show_prompt(screen, font, player_rect, weapon)
 
+        # Effect when main weapon shows
+        if show_popup or (main_weapon_unlocked and main_weapon_popup_shown):
+            dark_overlay = pygame.Surface((screen_width, screen_height))
+            dark_overlay.set_alpha(180)
+            dark_overlay.fill((0,0,0))
+            screen.blit(dark_overlay, (0,0))
 
         # popup box
         if show_popup:
