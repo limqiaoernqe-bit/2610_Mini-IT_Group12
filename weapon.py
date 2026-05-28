@@ -46,7 +46,7 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeel.png")).convert_alpha(), (90,90)),
         "image transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeel.png")).convert_alpha(), (90,90)),
-        "popup_text": "Banana Peel = Helps slow down the janitor. 2 uses"
+        "popup_text": "Banana Peel = Helps slow down the janitor. 1 use"
     },
     "CleaningSpray": {
         "zone": pygame.Rect(500, 350, 70, 50),
@@ -55,7 +55,7 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "cleaning-spray.png")).convert_alpha(), (90,90)),
         "image transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "cleaning-spray.png")).convert_alpha(), (90,90)),
-        "popup_text": "Cleaning Spray = Use it to attack the janitor. 3 uses"
+        "popup_text": "Cleaning Spray = Slows the janitor. 3 uses"
     },
     "BaseballBat":{
         "zone": pygame.Rect(350, 350, 50, 50),
@@ -226,7 +226,7 @@ while run:
         # Effect when main weapon shows
         if show_popup or (main_weapon_unlocked and main_weapon_popup_shown):
             dark_overlay = pygame.Surface((screen_width, screen_height))
-            dark_overlay.set_alpha(180)
+            dark_overlay.set_alpha(180) # darkens the bg and makes the weapon stands out 
             dark_overlay.fill((0,0,0))
             screen.blit(dark_overlay, (0,0))
 
