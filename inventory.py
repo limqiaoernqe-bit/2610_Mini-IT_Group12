@@ -45,7 +45,7 @@ class Inventory:
         if self.has_item(item):
             self.remove_item(item)  # consume item
 
-            if isinstance(target, Door) and item == target.required_key:
+            if item == target.required_key:
                 target.unlock()
                 print(f"{target.name} unlocked with {item}!")
             else:
