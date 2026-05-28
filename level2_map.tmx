@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.1" orientation="orthogonal" renderorder="right-down" width="80" height="60" tilewidth="48" tileheight="48" infinite="0" nextlayerid="15" nextobjectid="1">
+<map version="1.10" tiledversion="1.12.1" orientation="orthogonal" renderorder="right-down" width="80" height="60" tilewidth="48" tileheight="48" infinite="0" nextlayerid="17" nextobjectid="22">
  <editorsettings>
   <export target="../../Downloads/level2_map.tmx" format="tmx"/>
  </editorsettings>
@@ -676,4 +676,20 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup id="16" name="Room Triggers">
+  <object id="5" name="Gym Room" x="1608" y="389.333" width="72" height="184"/>
+  <object id="9" name="Room 208" x="2689.33" y="462.667" width="141.333" height="42.6667"/>
+  <object id="10" name="Room 210" x="3408" y="462.667" width="144" height="38.6667"/>
+  <object id="11" name="Room 204" x="76" y="1438.67" width="45.3333" height="97.3333"/>
+  <object id="12" name="Room 203" x="1420" y="1438.67" width="40" height="100"/>
+  <object id="13" name="Room 205" x="74.6667" y="1872" width="40" height="93.3333"/>
+  <object id="14" name="Room 202" x="1422.67" y="1874.67" width="37.3333" height="94.6667"/>
+  <object id="15" name="Room 206" x="70.6667" y="2300" width="44" height="101.333"/>
+  <object id="16" name="Room 201" x="1422.67" y="2301.33" width="41.3333" height="100"/>
+  <object id="17" name="Room 207" x="2157.33" y="1210.67" width="148" height="50.6667"/>
+  <object id="18" name="Room 209" x="2785.33" y="1212" width="142.667" height="48"/>
+  <object id="19" name="Room 211" x="3408" y="1206.67" width="142.667" height="58.6667"/>
+  <object id="20" name="Miantenance room" x="1897.33" y="2013.33" width="38.6667" height="197.333"/>
+  <object id="21" name="Janitor room" x="3265.33" y="2333.33" width="192" height="54.6667"/>
+ </objectgroup>
 </map>
