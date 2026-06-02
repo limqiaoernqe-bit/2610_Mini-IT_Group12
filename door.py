@@ -5,15 +5,18 @@ class Door:
         self.locked = locked
 
     def unlock(self):
-        self.locked = False
-        print(f"{self.name} has been unlocked.")
+        if self.locked:
+            self.locked = False
+            print(f"{self.name} has been unlocked.")
 
     def lock(self):
         self.locked = True
         print(f"{self.name} has been locked.")
 
+
     def is_locked(self):
         return self.locked
+
 
     def show_status(self):
         if self.locked:
