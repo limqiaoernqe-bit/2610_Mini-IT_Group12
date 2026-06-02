@@ -13,10 +13,8 @@ class Door:
         self.locked = True
         print(f"{self.name} has been locked.")
 
-
     def is_locked(self):
         return self.locked
-
 
     def show_status(self):
         if self.locked:
