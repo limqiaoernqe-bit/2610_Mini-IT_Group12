@@ -3,6 +3,8 @@ import pytmx
 
 from player import Player
 from room_navigation import RoomTrigger
+from door import Door
+from inventory import ROOM_210_KEY, JANITOR_KEY
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -24,10 +26,14 @@ TILE_SIZE = tmx_data.tilewidth
 collision_layers = [
     "Collision",
     "stairs collision",
-    "rooms collision"
+    "room210 collision",
+    "janitor collision"
 ]
 
-walls = []
+normal_walls = []
+stairs_walls = []
+room210_walls = []
+janitor_walls = []
 
 # Create collision recctangles
 for layer in tmx_data.visible_layers:
@@ -47,13 +53,32 @@ for layer in tmx_data.visible_layers:
                         TILE_SIZE
                     )
 
-                    walls.append(wall_rect)
+                    if layer.name == "Collision":
+                        normal_walls.append(wall_rect)
+
+                    elif layer.name == "stairs collision":
+                        stairs_walls.append(wall_rect)
+
+                    elif layer.name == "room210 collision":
+                        room210_walls.append(wall_rect)
+
+                    elif layer.name == "janitor collision":
+                        janitor_walls.append(wall_rect)
 
 # Create Player
 player = Player()
 
+room210_door = Door(
+    "Room 210",
+    ROOM_210_KEY
+)
+
+janitor_door = Door(
+    "Janitor Room",
+    JANITOR_KEY
+)
+
 # Room Triggers
-# Replace these coordinates later
 maintenance_room = RoomTrigger(
     pygame.Rect(1897, 2013, 39, 197),
     "Maintenance Room"
@@ -172,8 +197,30 @@ while running:
 
     # Player Movement
     keys = pygame.key.get_pressed()
+
+    # TEMP TESTING:
+    # Press U to unlock Room 210
+    if keys[pygame.K_u]:
+        room210_door.unlock()
+
+    # Press J to unlock Janitor Room
+    if keys[pygame.K_j]:
+        janitor_door.unlock()
+
+    # Sync trigger status with door status
+    room_210.locked = room210_door.is_locked()
+    janitor_room.locked = janitor_door.is_locked()
+
+    # Active collision walls
+    active_walls = normal_walls + stairs_walls
     
-    player.update(keys, walls) 
+    if room210_door.is_locked():
+        active_walls += room210_walls
+
+    if janitor_door.is_locked():
+        active_walls += janitor_walls
+
+    player.update(keys, active_walls)
 
     # Camera System
     camera_x = player.x - SCREEN_WIDTH // 2
