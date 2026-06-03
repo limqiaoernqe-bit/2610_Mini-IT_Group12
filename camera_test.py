@@ -4,7 +4,11 @@ import pytmx
 from player import Player
 from room_navigation import RoomTrigger
 from door import Door
-from inventory import ROOM_210_KEY, JANITOR_KEY
+from inventory import (
+    Inventory,
+    ROOM_210_KEY,
+    JANITOR_KEY
+)
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -67,6 +71,8 @@ for layer in tmx_data.visible_layers:
 
 # Create Player
 player = Player()
+
+inventory = Inventory()
 
 room210_door = Door(
     "Room 210",
@@ -195,21 +201,16 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+        if event.type == pygame.KEYDOWN:
+
+            if event.key == pygame.K_k:
+                inventory.add_item(ROOM_210_KEY)
+
+            if event.key == pygame.K_l:
+                inventory.add_item(JANITOR_KEY)
+
     # Player Movement
     keys = pygame.key.get_pressed()
-
-    # TEMP TESTING:
-    # Press U to unlock Room 210
-    if keys[pygame.K_u]:
-        room210_door.unlock()
-
-    # Press J to unlock Janitor Room
-    if keys[pygame.K_j]:
-        janitor_door.unlock()
-
-    # Sync trigger status with door status
-    room_210.locked = room210_door.is_locked()
-    janitor_room.locked = janitor_door.is_locked()
 
     # Active collision walls
     active_walls = normal_walls + stairs_walls
@@ -242,6 +243,29 @@ while running:
         40,
         40
     )
+
+    # Press E to unlock Room 210
+    if room_210.check_collision(player_rect):
+        
+        if keys[pygame.K_e]:
+            inventory.use_item(
+                ROOM_210_KEY,
+                room210_door
+            )
+
+    # Press E to unlock Janitor Room
+    if janitor_room.check_collision(player_rect):
+        
+        if keys[pygame.K_e]:
+            
+            inventory.use_item(
+                JANITOR_KEY,
+                janitor_door
+            )
+        
+    # Sync trigger status with door status
+    room_210.locked = room210_door.is_locked()
+    janitor_room.locked = janitor_door.is_locked()
 
     # Room labels
     for room in room_triggers:
