@@ -57,6 +57,7 @@ class Inventory:
 # Keys
 JANITOR_KEY = "janitor_key"
 ROOM_210_KEY = "room_210_key"
+ROOM_206_KEY = "room_206_key"
 SECURITY_BADGE = "security_badge"
 EXIT_KEY = "exit_key"
 
@@ -85,6 +86,7 @@ if __name__ == "__main__":
 
 
     inventory.add_item(JANITOR_KEY)
+    inventory.add_item(ROOM_206_KEY)
     inventory.add_item(LOCK_CUTTER)
     inventory.add_item(SCREWDRIVER)
 
@@ -97,7 +99,8 @@ if __name__ == "__main__":
 
     print("Has janitor key?", inventory.has_item(JANITOR_KEY))
     print("Has room 210 key?", inventory.has_item(ROOM_210_KEY))
-
+    print("Has room 206 key?", inventory.has_item(ROOM_206_KEY))
+    print("Has security badge?", inventory.has_item(SECURITY_BADGE))
 
     inventory.remove_item(LOCK_CUTTER)
 
