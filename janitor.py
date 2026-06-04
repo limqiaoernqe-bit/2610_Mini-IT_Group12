@@ -126,8 +126,13 @@ class Janitor:
         # apply animation frame
         self.image = self.animate()
 
+       # check for trap collisions
+        for trap in active_traps[:]:
+            if self.image.get_rect(center=(self.x, self.y)).colliderect(trap["rect"]):
+                self.weapon_effect("BananaPeel")
+                active_traps.remove(trap)
 
- 
+
     def draw(self, screen):
         rect = self.image.get_rect(midbottom=(self.x, self.y))
         screen.blit(self.image, rect)

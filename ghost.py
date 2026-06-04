@@ -75,3 +75,6 @@ class Ghost:
         if effect == "MWfull":
             self.state = "defeat"
             self.defeat = True
+
+        if effect == "Salt":
+            self.state = "blocked"

@@ -29,6 +29,9 @@ barricade = []
 #Sound
 unlock_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "unlock.wav"))
 mw_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "full.wav"))
+spray_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "spray.wav"))
+vaccum_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "vacuum.wav"))
+swing_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "baseballswing.mp3"))
 
 # Weapon Zone
 Weapons = {
@@ -49,7 +52,9 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeel.png")).convert_alpha(), (90,90)),
         "image transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeel.png")).convert_alpha(), (90,90)),
-        "popup_text": "Banana Peel = Helps slow down the janitor. 1 use"
+        "popup_text": "Banana Peel = Helps slow down the janitor. 2 use",
+        "image_used": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeelUse.png")).convert_alpha(), (90,90)),
+        "image_used transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeelUse.png")).convert_alpha(), (90,90))
     },
     "CleaningSpray": {
         "zone": pygame.Rect(500, 350, 70, 50),
@@ -58,7 +63,7 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "cleaning-spray.png")).convert_alpha(), (90,90)),
         "image transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "cleaning-spray.png")).convert_alpha(), (90,90)),
-        "popup_text": "Cleaning Spray = Slows the janitor. 3 uses"
+        "popup_text": "Cleaning Spray = Stops the janitor for a few seconds. 3 uses"
     },
     "BaseballBat":{
         "zone": pygame.Rect(350, 350, 50, 50),
@@ -66,7 +71,7 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BaseballBat.png")).convert_alpha(), (90,90)),
         "image transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "BaseballBat.png")).convert_alpha(), (90,90)),
-        "popup_text": "Baseball Bat = Helps defeat the janitor. 1 use"
+        "popup_text": "Baseball Bat = Helps defeat the janitor"
     },
     #Level 1 Weapons
     "MWpiece2": {
@@ -85,7 +90,7 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "Salt.png")).convert_alpha(), (45,45)),
         "image transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "Salt.png")).convert_alpha(), (45,45)),
-        "popup_text": "Salt = Sprinkle across the doorway or drop a salt line to block the ghost temporarily. 1 use"
+        "popup_text": "Salt = Sprinkle across the doorway or drop a salt line to block the ghost temporarily. 3 uses"
     },
     "KitchenKnife":{
         "zone": pygame.Rect(100, 400, 50, 50),
@@ -93,7 +98,7 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "KitchenKnife.png")).convert_alpha(), (70,70)),
         "image transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "KitchenKnife.png")).convert_alpha(), (70,70)),
-        "popup_text": "Kitchen Knife = Kill the receptionist. 1 use"
+        "popup_text": "Kitchen Knife = Kill the receptionist."
     },
     "MWpiece3": {
         "zone": pygame.Rect(200, 470, 50, 100),
@@ -169,17 +174,14 @@ def pieces_collected ():
 
 # weapon use
 def use_weapon(name, player_rect, enemies, player_direction):
-    if name not in Weapons:
-        return
-    
+    if "uses" in Weapons[name]:
     # everytime player use it the uses decrease
-    Weapons[name]["uses"] -=1
-
+       Weapons[name]["uses"] -=1
     # if uses reach to 0 then u remove it from the inventory
-    if Weapons[name]["uses"] <=0 :
-        inventory.remove(Weapons[name])
-        return
-
+       if Weapons[name]["uses"] <=0 :
+           inventory.remove(Weapons[name])
+           return
+       
     if name == "BananaPeel":
         slippery_zone = pygame.Rect(player_rect.x+50, player_rect.y, 40, 40)
         active_traps.append({"rect": slippery_zone, "start": pygame.time.get_ticks()})
@@ -188,31 +190,56 @@ def use_weapon(name, player_rect, enemies, player_direction):
                 enemy.weapon_effect("BananaPeel")
 
     elif name == "CleaningSpray":
+        spray_sound.play()
         for enemy in enemies:
             if player_rect.colliderect(enemy.image.get_rect(center=(enemy.x,enemy.y))):
                 enemy.weapon_effect("CleaningSpray")
 
     elif name == "BaseballBat":
+        swing_sound.play()
         for enemy in enemies:
             if player_rect.colliderect(enemy.image.get_rect(center=(enemy.x,enemy.y))):
                 enemy.weapon_effect("BaseballBat")
 
     elif name == "Board":
-        barricade = pygame.Rect(player_rect.x, player_rect.y, 80,20)
-        barricade.append(barricade)
+        new_barricade = pygame.Rect(player_rect.x, player_rect.y, 80,20)
+        barricade.append(new_barricade)
 
     elif name == "MWfull":
+        vaccum_sound.play()
         for enemy in enemies:
             if player_rect.colliderect(enemy.image.get_rect(center=(enemy.x, enemy.y))):
                 enemy.weapon_effect("MWfull")
+ 
 
+# drawing traps
+def draw_traps(screen):
+    active_traps.append({
+        "rect": slippery_zone,
+        "imageUsed": Weapons["BananaPeel"]["image_used transformed"],
+        "start": pygame.time.get_ticks()
+    })
+
+# Salt 
+def place_salt(x,y, direction):
+    SALT_LENGTH = 120
+    if direction in ["left", "right"]:
+        salt_rect = pygame.Rect(x, y, SALT_LENGTH, 10)
+    else:
+        salt_rect = pygame.Rect(x, y, 10, SALT_LENGTH)
+    salt_line.append(salt_rect)
+
+def draw_salt(screen):
+    for salt in salt_line: 
+        pygame.draw.rect(screen, (255, 255, 255), salt)
+
+def draw_barricades(screen):
+    for b in barricade:
+        board_image = Weapons["Board"]["image transformed"]
+        screen.blit(board_image, b.topleft)
 
 clock = pygame.time.Clock()
 run = True
-
-def mw_image_get_rect(center):
-    raise NotImplementedError
-
 
 while run:
     clock.tick(60)
@@ -220,13 +247,6 @@ while run:
         if event.type == QUIT:
             run = False
 
-
-        # TESTING PURPOSES
-        if event.type == KEYDOWN:
-            if event.key == K_LEFT: player_rect.x -= player_speed
-            elif event.key == K_RIGHT: player_rect.x += player_speed
-            elif event.key == K_UP: player_rect.y -= player_speed
-            elif event.key == K_DOWN: player_rect.y += player_speed
        
         # Collect Weapons
             if event.key == K_r:
@@ -248,14 +268,17 @@ while run:
                          popup_start_time = pygame.time.get_ticks()
                          popup_message = weapon["popup_text"]
 
+            # Use Weapons
+            if event.key == K_w:
+                slippery_zone = pygame.Rect(player_rect.x, player_rect.y, 40, 40)
+                active_traps.append({
+                    "rect": slippery_zone,
+                    "imageUsed": Weapons["BananaPeel"]["image_used transformed"]
+                })
+
         # hide popup
         if show_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 1000):
              show_popup = False
-
-
-        # Testing purposes
-        screen.fill((200,200,200))
-        pygame.draw.rect(screen, (0, 0, 255), player_rect)
 
 
         # Draw image of weapons

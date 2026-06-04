@@ -123,11 +123,18 @@ class Receptionist:
 
             # for  board to barricade
             future_rect = self.image.get_rect(midbottom=(next_x, next_y))
-            if any(future_rect.colliderect(b) for b in barricade):
-                return
+            for b in barricade:
+                if future_rect.colliderect(b):
+                    return
+                
         self.x, self.y = next_x, next_y
         self.image = self.animate()
 
+# check for trap collisions
+        for trap in active_traps[:]:
+            if self.image.get_rect(center=(self.x, self.y)).colliderect(trap["rect"]):
+                self.weapon_effect("BananaPeel")
+                active_traps.remove(trap)
 
  
     def draw(self, screen):
