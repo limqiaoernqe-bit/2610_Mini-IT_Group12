@@ -7,7 +7,8 @@ from door import Door
 from inventory import (
     Inventory,
     ROOM_210_KEY,
-    JANITOR_KEY
+    JANITOR_KEY,
+    ROOM_206_KEY
 )
 
 SCREEN_WIDTH = 800
@@ -31,13 +32,15 @@ collision_layers = [
     "Collision",
     "stairs collision",
     "room210 collision",
-    "janitor collision"
+    "janitor collision",
+    "room206 collision"
 ]
 
 normal_walls = []
 stairs_walls = []
 room210_walls = []
 janitor_walls = []
+room206_walls = []
 
 # Create collision recctangles
 for layer in tmx_data.visible_layers:
@@ -69,6 +72,9 @@ for layer in tmx_data.visible_layers:
                     elif layer.name == "janitor collision":
                         janitor_walls.append(wall_rect)
 
+                    elif layer.name == "room206 collision":
+                        room206_walls.append(wall_rect)
+
 # Create Player
 player = Player()
 
@@ -82,6 +88,11 @@ room210_door = Door(
 janitor_door = Door(
     "Janitor Room",
     JANITOR_KEY
+)
+
+room206_door= Door(
+    "Room 206",
+    ROOM_206_KEY  
 )
 
 # Room Triggers
@@ -103,7 +114,8 @@ janitor_room = RoomTrigger(
 
 room_206 = RoomTrigger(
     pygame.Rect(71, 2300, 44, 101),
-    "Room 206"
+    "Room 206",
+    locked=True
 )
 
 room_210 = RoomTrigger(
@@ -209,6 +221,9 @@ while running:
             if event.key == pygame.K_l:
                 inventory.add_item(JANITOR_KEY)
 
+            if event.key == pygame.K_m:
+                inventory.add_item(ROOM_206_KEY)
+
     # Player Movement
     keys = pygame.key.get_pressed()
 
@@ -220,6 +235,9 @@ while running:
 
     if janitor_door.is_locked():
         active_walls += janitor_walls
+
+    if room206_door.is_locked():
+        active_walls += room206_walls
 
     player.update(keys, active_walls)
 
@@ -262,10 +280,21 @@ while running:
                 JANITOR_KEY,
                 janitor_door
             )
+    
+    # Press E to unlock Room 206
+    if room_206.check_collision(player_rect):
         
+        if keys[pygame.K_e]:
+            
+            inventory.use_item(
+                ROOM_206_KEY,
+                room206_door
+            )
+
     # Sync trigger status with door status
     room_210.locked = room210_door.is_locked()
     janitor_room.locked = janitor_door.is_locked()
+    room_206.locked = room206_door.is_locked()
 
     # Room labels
     for room in room_triggers:
