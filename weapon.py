@@ -46,7 +46,7 @@ Weapons = {
         "popup_text": "Main Weapon piece 1 collected"
     },
     "BananaPeel": {
-        "zone":pygame.Rect(350, 390, 50, 85), #just a placeholder cause im not sure of the exact position
+        "zone":pygame.Rect(1428, 341, 90, 90), #just a placeholder cause im not sure of the exact position
         "uses": 2,
         "prompt": "R",
         "collected": False,
@@ -57,7 +57,7 @@ Weapons = {
         "image_used transformed": pygame.transform.smoothscale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeelUse.png")).convert_alpha(), (90,90))
     },
     "CleaningSpray": {
-        "zone": pygame.Rect(500, 350, 70, 50),
+        "zone": pygame.Rect(3311, 2065, 90, 90),
         "uses": 3,
         "prompt": "R",
         "collected": False,
@@ -66,7 +66,7 @@ Weapons = {
         "popup_text": "Cleaning Spray = Stops the janitor for a few seconds. 3 uses"
     },
     "BaseballBat":{
-        "zone": pygame.Rect(350, 350, 50, 50),
+        "zone": pygame.Rect(3184, 369, 90, 90),
         "prompt": "R",
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BaseballBat.png")).convert_alpha(), (90,90)),
