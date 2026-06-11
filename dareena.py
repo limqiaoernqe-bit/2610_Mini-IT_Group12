@@ -10,9 +10,6 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Hotel')
 font = pygame.font.Font(None,30)
 
-#TESTING PURPOSES
-player_rect = pygame.Rect(100, 100, 50,50)
-player_speed = 7
 inventory = []
 
 Puzzle = {
@@ -145,13 +142,6 @@ while run :
         if event.type == pygame.QUIT:
             run = False
 
-        #TEST PLAYER MOVEMENT
-        if event.type == KEYDOWN:
-            if event.key == K_LEFT: player_rect.x -= player_speed
-            elif event.key == K_RIGHT:player_rect.x += player_speed
-            elif event.key == K_UP: player_rect.y -= player_speed
-            elif event.key == K_DOWN: player_rect.y += player_speed
-
 # Player has to press R to open puzzle
             if event.key == K_r:
                for name, puzzle in Puzzle.items():
@@ -188,9 +178,6 @@ while run :
                else:
                     active_puzzle["answer"] += event.unicode
 
-#TEST
-    screen.fill((200,200,200))
-    pygame.draw.rect(screen, (255,0,0), player_rect)
 
     for name, puzzle in Puzzle.items():
         pygame.draw.rect(screen, (0,255,0), puzzle["zone"],2)
