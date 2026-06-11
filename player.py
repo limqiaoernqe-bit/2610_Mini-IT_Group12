@@ -102,7 +102,41 @@ class Player:
                 self.image = self.animate(self.walk_back)
                 self.direction = "back"
                 moving = True
+            
+            # Collision Rect
+            player_rect = pygame.Rect(
+                 self.x - 20,
+                 self.y - 40,
+                    40,
+                    40
+            )
 
+            # Horizontal collision 
+            player_rect.x += dx
+
+            for wall in walls:
+                if player_rect.colliderect(wall):
+                     dx = 0
+                     break
+                
+            # Vertical collision
+            player_rect.y += dy
+
+            for wall in walls:
+                if player_rect.colliderect(wall):
+                    dy = 0
+                    break
+
+            # Apply movement after collision checks
+            self.x += dx
+            self.y += dy
+
+            if not moving:
+                 self.frame = 0
+                 if self.direction == "front":
+                    self.image = self.idle_front
+                 elif self.direction == "back":
+                    self.image = self.idle_back
     
     def draw(self, screen, camera_x, camera_y):
             rect = self.image.get_rect(
@@ -112,7 +146,3 @@ class Player:
                 )
             )
             screen.blit(self.image, rect)
-#later delete after all enemy movement finish
-    def draw(self, screen):
-        rect = self.image.get_rect(midbottom=(self.x, self.y))
-        screen.blit(self.image, rect)
