@@ -10,6 +10,7 @@ from inventory import (
     JANITOR_KEY,
     ROOM_206_KEY
 )
+from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -83,6 +84,9 @@ player.x = 2160
 player.y = 2160
 
 inventory = Inventory()
+
+# Currently active puzzle (None when no puzzle is active)
+active_puzzle = None
 
 room210_door = Door(
     "Room 210",
@@ -228,6 +232,32 @@ while running:
             if event.key == pygame.K_m:
                 inventory.add_item(ROOM_206_KEY)
 
+            # close puzzle when press C
+            if event.key == pygame.K_c and active_puzzle and active_puzzle["active"]:
+                active_puzzle["active"] = False
+
+        # to find coordinates
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            world_x = event.pos[0] + camera_x
+            world_y = event.pos[1] + camera_y
+            print(f"World Coordinates: ({world_x}, {world_y})")
+
+        # puzzle 
+        if active_puzzle and active_puzzle["active"]:
+            handle_puzzle_input(event, active_puzzle, inventory)
+
+        # clue
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                for clue in Clue.values():
+                    if clue["show_prompt"] and clue ["active"]:
+                        clue["show_popup"] = True
+                        clue["active"] = False
+            if event.key == pygame.K_c:
+                for clue in Clue.values():
+                    if clue ["show_popup"]:
+                        clue["show_popup"] = False
+
     # Player Movement
     keys = pygame.key.get_pressed()
 
@@ -258,12 +288,17 @@ while running:
     # Draw player 
     player.draw(screen, camera_x, camera_y)
 
+    # outline puzzle zone js to check
+    zone = Puzzle["Treadmill"]["zone"]
+    pygame.draw.rect(screen, (255, 0, 0),
+         pygame.Rect(zone.x - camera_x, zone.y - camera_y, zone.width, zone.height), 2)
+
     # Player collision rect
     player_rect = pygame.Rect(
-        player.x - 20, 
-        player.y - 40,
-        40,
-        40
+        player.x - 30, 
+        player.y - 60,
+        60,
+        60
     )
 
     # Press E to unlock Room 210
@@ -302,6 +337,31 @@ while running:
 
     # Room labels
     for room in room_triggers:
+
+        # puzzle trigger 
+        if player_rect.colliderect(Puzzle["Treadmill"]["zone"]):
+                if keys[pygame.K_r]:
+                    treadmill_puzzle = Puzzle["Treadmill"]
+                    if not treadmill_puzzle["collected"]:
+                        treadmill_puzzle["active"] = True
+                        active_puzzle = treadmill_puzzle
+
+            # puzzle prompt
+        show_puzzle_prompt(screen,font, Puzzle["Treadmill"],255, 747, camera_x, camera_y)
+
+        if active_puzzle and active_puzzle["active"]:
+                puzzle_screen(active_puzzle, screen, font)
+
+        if active_puzzle and active_puzzle["collected"]:
+            if pygame.time.get_ticks() - active_puzzle.get("correct_start", 0) > 3000:  # Show message for 3 seconds
+                active_puzzle["active"] = False
+
+            # clue 
+        for clue in Clue.values():
+                show_clue_prompt(screen, font, player_rect, clue, camera_x, camera_y)
+                if clue["show_popup"]:
+                    show_popup(screen, font, clue)
+
         
         if room.check_collision(player_rect):
             
@@ -328,7 +388,7 @@ while running:
                 True,
                 (255, 255, 255)
             )
-            
+
             screen.blit(text_surface, (20, 20))
 
     pygame.display.flip()
