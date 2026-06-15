@@ -288,14 +288,19 @@ while running:
     # Draw player 
     player.draw(screen, camera_x, camera_y)
 
-    # outline puzzle zone js to check
+    # outline puzzle zone & clue js to check
     zone = Puzzle["Treadmill"]["zone"]
     pygame.draw.rect(screen, (255, 0, 0),
          pygame.Rect(zone.x - camera_x, zone.y - camera_y, zone.width, zone.height), 2)
+    
+    for clue in Clue.values():
+        czone = clue["zone"]
+        pygame.draw.rect(screen, (255, 0, 0),
+            pygame.Rect(czone.x - camera_x, czone.y - camera_y, czone.width, czone.height), 2)
 
     # Player collision rect
     player_rect = pygame.Rect(
-        player.x - 30, 
+        player.x - 30,
         player.y - 60,
         60,
         60
@@ -358,11 +363,12 @@ while running:
 
             # clue 
         for clue in Clue.values():
+                if "image" in clue:
+                    screen.blit(clue["image"], (clue["zone"].x  - camera_x, clue["zone"].y - camera_y))
                 show_clue_prompt(screen, font, player_rect, clue, camera_x, camera_y)
                 if clue["show_popup"]:
                     show_popup(screen, font, clue)
 
-        
         if room.check_collision(player_rect):
             
             pygame.draw.rect(

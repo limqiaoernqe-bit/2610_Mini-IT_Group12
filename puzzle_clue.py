@@ -1,10 +1,14 @@
 import pygame
 from pygame.locals import K_BACKSPACE, K_RETURN
+import os
+
+BASE_DIR = os.path.dirname(__file__)
+ASSET_DIR = os.path.join(BASE_DIR, 'assets')
 
 # Puzzle Zone
 Puzzle = {
    "Treadmill":{
-      "zone": pygame.Rect(246,640,100,80),
+      "zone": pygame.Rect(243,640,100,80),
       "prompt": "R",
       "collected": False,
       "solution": "206",
@@ -13,24 +17,29 @@ Puzzle = {
       "end_message":""
    }
 }
+clue_image = pygame.image.load(os.path.join(ASSET_DIR, "Clue.png"))
+clue_image = pygame.transform.scale(clue_image, (90,90))
 
 # Clue Zone
 Clue = {
     "Clue1": {
-        "zone": pygame.Rect(300,300,50,50),
+        "zone": pygame.Rect(2095,2227,150,150),
         "prompt": "R",
         "active": True,
         "show_prompt": False,
         "show_popup": False,
-        "text": "Loud steps mean he's near, Soft steps mean he's far"
+        "text": "Loud steps mean he's near, Soft steps mean he's far",
+        "image": clue_image,
     },
+
     "Clue2": {
         "zone": pygame.Rect(270,200,50,70),
         "prompt":"R",
         "active": True,
         "show_prompt": False,
         "show_popup": False,
-        "text":"He dropped what carried him. The door besides it holds it"
+        "text":"He dropped what carried him. The door besides it holds it",
+        "image": clue_image,
     }
 }  
 
