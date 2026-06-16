@@ -79,6 +79,10 @@ for layer in tmx_data.visible_layers:
 # Create Player
 player = Player()
 
+# Spwan position
+player.x = 2160
+player.y = 2160
+
 inventory = Inventory()
 
 # Currently active puzzle (None when no puzzle is active)
