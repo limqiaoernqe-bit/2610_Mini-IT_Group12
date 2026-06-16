@@ -7,6 +7,9 @@ class Receptionist:
         self.x = x
         self.y = y
         self.speed = 1.5
+        self.state = "chasing"
+        self.defeat = False
+        self.stun_timer = 0
 
         self.frame = 0
         self.anim_speed = 0.12
@@ -71,10 +74,21 @@ class Receptionist:
             self.current_frames = new_frames
             self.frame = 0  
 
-    def update(self, player_x, player_y):
+    def update(self, player_x, player_y, barricade):
 
-        dx = player_x - self.x
-        dy = player_y - self.y
+        if self.defeat:
+            return
+         
+        next_x, next_y = self.x, self.y 
+
+        if self.state == "stunned":
+            if pygame.time.get_ticks() - self.stun_timer > 10000: 
+                self.state = "chasing"
+            else:
+                return      
+        if self.state == "chasing":
+           dx = player_x - self.x
+           dy = player_y - self.y
 
         # stop near player
         if abs(dx) < self.stop_distance and abs(dy) < self.stop_distance:
@@ -107,10 +121,33 @@ class Receptionist:
                 self.direction = "left"
                 self.set_frames(self.walk_left)
 
+            # for  board to barricade
+            future_rect = self.image.get_rect(midbottom=(next_x, next_y))
+            for b in barricade:
+                if future_rect.colliderect(b):
+                    return
+                
+        self.x, self.y = next_x, next_y
         self.image = self.animate()
 
+# check for trap collisions
+        for trap in active_traps[:]:
+            if self.image.get_rect(center=(self.x, self.y)).colliderect(trap["rect"]):
+                self.weapon_effect("BananaPeel")
+                active_traps.remove(trap)
 
  
     def draw(self, screen):
         rect = self.image.get_rect(midbottom=(self.x, self.y))
         screen.blit(self.image, rect)
+
+    def weapon_effect(self, effect):
+        if effect == "BananaPeel":
+            self.speed = max(1,self.speed -1)
+
+        elif effect == "CleaningSpray":
+            self.state = "stunned" 
+            self.stun_timer = pygame.time.get_ticks()
+
+        elif effect == "KitchenKnife":
+            self.defeat = True

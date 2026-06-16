@@ -7,6 +7,9 @@ class Ghost:
         self.x = x
         self.y = y
         self.speed = 1.5
+        self.state = "chasing"
+        self.defeat = False
+
 
         # SINGLE SPRITES ONLY
         self.image_right = pygame.transform.scale(
@@ -26,6 +29,9 @@ class Ghost:
 
     def update(self, player_x, player_y):
 
+        if self.defeat:
+            return
+        
         dx = player_x - self.x
         dy = player_y - self.y
 
@@ -47,8 +53,28 @@ class Ghost:
             self.image = self.image_right
         else:
             self.image = self.image_left
+        
+        next_x = self.x + dx * self.speed
+        next_y = self.y + dy * self.speed
+
+        future_rect = self.image.get_rect(midbottom=(next_x, next_y))
+        for salt in salt_lines:
+            if future_rect.colliderect(salt["rect"]):
+                return 
+            
+        self.x = next_x
+        self.y = next_y
 
 
     def draw(self, screen):
         rect = self.image.get_rect(center=(self.x, self.y))
         screen.blit(self.image, rect)
+
+    def weapon_effect(self, effect):
+
+        if effect == "MWfull":
+            self.state = "defeat"
+            self.defeat = True
+
+        if effect == "Salt":
+            self.state = "blocked"

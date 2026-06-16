@@ -7,6 +7,9 @@ class Janitor:
         self.x = x
         self.y = y
         self.speed = 1
+        self.state = "chasing"
+        self.defeat = False
+        self.stun_timer = 0
 
         self.frame = 0
         self.anim_speed = 0.12
@@ -72,6 +75,15 @@ class Janitor:
             self.frame = 0  
 
     def update(self, player_x, player_y):
+        # if defeats the janitor js stops moving
+        if self.defeat:
+            return 
+         # stops the janitor for 10 seconds
+        if self.state == "stunned":
+            if pygame.time.get_ticks() - self.stun_timer > 10000: 
+                self.state = "chasing"
+            else:
+                return
 
         dx = player_x - self.x
         dy = player_y - self.y
@@ -114,8 +126,25 @@ class Janitor:
         # apply animation frame
         self.image = self.animate()
 
+       # check for trap collisions
+        for trap in active_traps[:]:
+            if self.image.get_rect(center=(self.x, self.y)).colliderect(trap["rect"]):
+                self.weapon_effect("BananaPeel")
+                active_traps.remove(trap)
 
- 
+
     def draw(self, screen):
         rect = self.image.get_rect(midbottom=(self.x, self.y))
         screen.blit(self.image, rect)
+
+    def weapon_effect (self,effect):
+        if effect == "BananaPeel":
+            self.speed = max(1,self.speed -1)
+
+        elif effect == "CleaningSpray":
+            self.state = "stunned" 
+            self.stun_timer = pygame.time.get_ticks()
+
+        elif effect == "BaseballBat":
+            self.state = "defeated"
+            self.defeat = True

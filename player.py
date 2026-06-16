@@ -37,6 +37,7 @@ class Player:
 
         self.image = self.idle_front
         self.direction = "front"
+        self.hold_weapon = None
 
     def load_sheet(self, sheet, rows, cols):
         frames = []
@@ -68,7 +69,6 @@ class Player:
             self.frame = 0
         return frames[int(self.frame)]
 
-    
     def update(self, keys, walls):
             moving = False
 
@@ -137,12 +137,27 @@ class Player:
                     self.image = self.idle_front
                  elif self.direction == "back":
                     self.image = self.idle_back
-    
-    def draw(self, screen, camera_x, camera_y):
-            rect = self.image.get_rect(
-                midbottom=(
-                    self.x - camera_x,
-                    self.y - camera_y 
-                )
-            )
-            screen.blit(self.image, rect)
+
+#later delete after all enemy movement finish
+    def draw(self, screen, camera_x=0, camera_y=0):
+        rect = self.image.get_rect(midbottom=(self.x - camera_x, self.y - camera_y))
+        screen.blit(self.image, rect)
+
+        # if player holds weapon 
+        if self.hold_weapon is not None and self.hold_weapon in Weapons:
+             weapon_img = Weapons [self,hold_weapon]["image"]
+
+             # flip 
+             if self.direction == "left": 
+                  weapon_img = pygame.transform.flip(weapon_img, True, False)
+                  offset_x = rect.x + 20
+                  offset_y = rect.y +40
+             elif self.direction == "right":
+                  offset_x = rect.x +40
+                  offset_y = rect.y +60
+
+             else:
+              offset_x = rect.x + 50
+              offset_y = rect.y + 30
+
+             screen.blit(weapon_img, (offset_x, offset_y))
