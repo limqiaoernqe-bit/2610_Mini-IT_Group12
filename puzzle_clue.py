@@ -130,11 +130,13 @@ def puzzle_screen(puzzle,screen, font, screen_width=800, screen_height=600):
     else:
 
        msg1 = font.render("Complete the puzzle to find where you friend is hiding", True, (0,0,0))
-       msg2 = font.render("Input the number of treadmills, balls and dumbells(first row only) you see.", True, (0,0,0))
-       msg3 = font.render("Press C to close the puzzle", True, (255,0,0))
+       msg2 = font.render("Input the number of treadmills, balls and dumbells", True, (0,0,0))
+       msg3 = font.render("( first row only ) you see.", True, (0,0,0))
+       msg4 = font.render("Press C to close the puzzle", True, (255,0,0))
        screen.blit(msg1, (box_x + 20, box_y + 20))
        screen.blit(msg2, (box_x + 20, box_y + 50))
        screen.blit(msg3, (box_x + 20, box_y + 80))
+       screen.blit(msg4, (box_x + 20, box_y + 140))
 
        input_rect = pygame.Rect(box_x + 20, box_y + 110,200,30)
        pygame.draw.rect(screen, pygame.Color('lightskyblue3'), input_rect, 2)
