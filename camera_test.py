@@ -81,13 +81,10 @@ player = Player()
 
 inventory = Inventory()
 
-<<<<<<< HEAD
 # Currently active puzzle (None when no puzzle is active)
 active_puzzle = None
 
-=======
 # Level 2 Door Objects
->>>>>>> room-and-map-design
 room210_door = Door(
     "Room 210",
     ROOM_210_KEY
