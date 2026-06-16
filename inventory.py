@@ -53,13 +53,17 @@ class Inventory:
 
 
 
-
-# Keys
+# Level 2 keys
 JANITOR_KEY = "janitor_key"
 ROOM_210_KEY = "room_210_key"
 ROOM_206_KEY = "room_206_key"
+
+# Level 1 keys 
 SECURITY_BADGE = "security_badge"
-EXIT_KEY = "exit_key"
+ROOM116_KEY = "room116_key"
+ROOM117_KEY = "room117_key"
+ROOM116_117_CODE = "room116_117_code"
+EXIT_DOOR_KEY = "exit_door_key"
 
 
 # Tools
