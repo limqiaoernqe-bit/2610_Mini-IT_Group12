@@ -27,7 +27,7 @@ font = pygame.font.Font(None, 36)
 tmx_data = pytmx.load_pygame("level2_map.tmx")
 TILE_SIZE = tmx_data.tilewidth
 
-#Collision layers
+# Level 2 Collision layers
 collision_layers = [
     "Collision",
     "stairs collision",
@@ -84,6 +84,7 @@ player.y = 2160
 
 inventory = Inventory()
 
+# Level 2 Door Objects
 room210_door = Door(
     "Room 210",
     ROOM_210_KEY
