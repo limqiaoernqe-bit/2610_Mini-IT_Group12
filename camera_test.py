@@ -78,10 +78,6 @@ for layer in tmx_data.visible_layers:
 # Create Player
 player = Player()
 
-# Spawn position
-player.x = 2160
-player.y = 2160
-
 inventory = Inventory()
 
 # Level 2 Door Objects
@@ -100,7 +96,7 @@ room206_door= Door(
     ROOM_206_KEY  
 )
 
-# Level 2 Room Triggers
+# Room Triggers
 maintenance_room = RoomTrigger(
     pygame.Rect(1897, 2013, 39, 197),
     "Maintenance Room"
