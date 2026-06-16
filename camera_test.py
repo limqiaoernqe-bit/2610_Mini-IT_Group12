@@ -28,7 +28,7 @@ font = pygame.font.Font(None, 36)
 tmx_data = pytmx.load_pygame("level2_map.tmx")
 TILE_SIZE = tmx_data.tilewidth
 
-#Collision layers
+# Level 2 Collision layers
 collision_layers = [
     "Collision",
     "stairs collision",
@@ -79,15 +79,15 @@ for layer in tmx_data.visible_layers:
 # Create Player
 player = Player()
 
-# Spawn position
-player.x = 2160
-player.y = 2160
-
 inventory = Inventory()
 
+<<<<<<< HEAD
 # Currently active puzzle (None when no puzzle is active)
 active_puzzle = None
 
+=======
+# Level 2 Door Objects
+>>>>>>> room-and-map-design
 room210_door = Door(
     "Room 210",
     ROOM_210_KEY
@@ -103,7 +103,7 @@ room206_door= Door(
     ROOM_206_KEY  
 )
 
-# Level 2 Room Triggers
+# Room Triggers
 maintenance_room = RoomTrigger(
     pygame.Rect(1897, 2013, 39, 197),
     "Maintenance Room"
