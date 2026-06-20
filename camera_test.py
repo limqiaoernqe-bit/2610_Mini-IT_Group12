@@ -11,6 +11,40 @@ from inventory import (
     ROOM_206_KEY
 )
 from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
+from weapon import Weapons, inventory, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, draw_barricades, pieces_collected, unlock_sound, mw_sound
+
+# Weapon Popup system
+show_popup = False
+popup_start_time = 0
+popup_duration = 1
+popup_message = ""
+main_weapon_unlocked = False
+msin_weapon_popup_shown = False
+
+def draw_text(surface, text, rect, font, color):
+    words = text.split(" ")
+    lines = []
+    line = ""
+    for word in words:
+        test_line = line + word + " "
+        if font.size(test_line)[0] < rect.width - 40:
+            line = test_line
+        else:
+            lines.append(line)
+            line = word + " "
+    lines.append(line)
+
+
+    line_height = font.size("Tg")[1]
+    total_height =len(lines) * line_height
+    y = rect.y + (rect.height - total_height) // 2
+
+
+    for line in lines:
+        text_surface = font.render(line, True, color)
+        text_rect = text_surface.get_rect(centerx=rect.centerx, y=y)
+        surface.blit(text_surface, text_rect)
+        y += line_height
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -259,6 +293,32 @@ while running:
                     if clue ["show_popup"]:
                         clue["show_popup"] = False
 
+        # Collect Weapons
+            if event.key == pygame.K_r:
+              for name, weapon in Weapons.items():
+                if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
+                    weapon["collected"] = True
+                    unlock_sound.play()
+                    inventory.add_item(name)
+
+                    if pieces_collected() == 3 and not main_weapon_unlocked:
+                        main_weapon_unlocked = True
+                        Weapons["MWfull"]["collected"] = True
+                        inventory.add_item("MWfull")
+                        main_weapon_popup_shown = True
+                        popup_start_time = pygame.time.get_ticks()
+                        mw_sound.play()
+                    else:
+                        show_popup = True
+                        popup_start_time = pygame.time.get_ticks()
+                        popup_message = weapon["popup_text"]
+
+                        # Use Weapons
+            if event.key == pygame.K_w:
+                if inventory:
+                    current_weapon = player.held_weapon
+                    use_weapon(current_weapon, player_rect, enemies, player.direction)
+
     # Player Movement
     keys = pygame.key.get_pressed()
 
@@ -276,6 +336,14 @@ while running:
 
     player.update(keys, active_walls)
 
+    # Player collision rect
+    player_rect = pygame.Rect(
+        player.x - 30,
+        player.y - 60,
+        60,
+        60
+    )
+
     # Camera System
     camera_x = player.x - SCREEN_WIDTH // 2
     camera_y = player.y - SCREEN_HEIGHT // 2
@@ -289,6 +357,53 @@ while running:
     # Draw player 
     player.draw(screen, camera_x, camera_y)
 
+# WEAPON PART
+    # hide popup
+    if show_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 1000):
+        show_popup = False
+
+        # Effect when main weapon shows
+    if show_popup or (main_weapon_unlocked and main_weapon_popup_shown):
+        dark_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        dark_overlay.set_alpha(180) # darkens the bg and makes the weapon stands out 
+        dark_overlay.fill((0,0,0))
+        screen.blit(dark_overlay, (0,0))
+
+        # popup box
+    if show_popup:
+        popup_width = 400
+        popup_height = 200
+        popup_x =(SCREEN_WIDTH - popup_width) //2 
+        popup_y = (SCREEN_HEIGHT - popup_height) //2
+        popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
+
+            #draw popup box
+        pygame.draw.rect(screen, (255,255,255), popup_rect)
+        pygame.draw.rect(screen, (153, 204, 255), popup_rect, 2)
+        draw_text(screen, popup_message, popup_rect, font, (0,0,0))
+
+    if main_weapon_unlocked and main_weapon_popup_shown:
+        MWimage = Weapons["MWfull"]["image"]
+        MW_rect = MWimage.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+        screen.blit(MWimage, MW_rect)
+
+        if pygame.time.get_ticks() - popup_start_time > 1000:
+            main_weapon_popup_shown = False
+            show_popup = True
+            popup_start_time = pygame.time.get_ticks()
+            popup_message = Weapons["MWfull"]["popup_text"]
+
+    # Draw image of weapons
+    for name, weapon in Weapons.items():
+        if weapon["zone"] is not None and not weapon["collected"]:
+            screen.blit(weapon["image"],( weapon["zone"].x - camera_x, weapon["zone"].y - camera_y))
+        show_prompt(screen, font, player_rect, weapon, camera_x, camera_y)
+
+    # draw use weapon
+    draw_traps(screen)
+    draw_salt(screen)
+    draw_barricades(screen)
+
     # outline puzzle zone & clue js to check
     zone = Puzzle["Treadmill"]["zone"]
     pygame.draw.rect(screen, (255, 0, 0),
@@ -298,14 +413,6 @@ while running:
         czone = clue["zone"]
         pygame.draw.rect(screen, (255, 0, 0),
             pygame.Rect(czone.x - camera_x, czone.y - camera_y, czone.width, czone.height), 2)
-
-    # Player collision rect
-    player_rect = pygame.Rect(
-        player.x - 30,
-        player.y - 60,
-        60,
-        60
-    )
 
     # Press E to unlock Room 210
     if room_210.check_collision(player_rect):
