@@ -1,4 +1,6 @@
 import pygame
+from weapon import Weapons
+
 SCALE_SIZE = (120, 120)
 class Player:
     def __init__(self):
@@ -37,7 +39,7 @@ class Player:
 
         self.image = self.idle_front
         self.direction = "front"
-        self.hold_weapon = None
+        self.held_weapon = None
 
     def load_sheet(self, sheet, rows, cols):
         frames = []
@@ -144,8 +146,8 @@ class Player:
         screen.blit(self.image, rect)
 
         # if player holds weapon 
-        if self.hold_weapon is not None and self.hold_weapon in Weapons:
-             weapon_img = Weapons [self,hold_weapon]["image"]
+        if self.held_weapon is not None and self.held_weapon in Weapons:
+             weapon_img = Weapons [self.held_weapon]["image"]
 
              # flip 
              if self.direction == "left": 
