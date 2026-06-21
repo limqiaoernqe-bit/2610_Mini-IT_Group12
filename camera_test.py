@@ -12,6 +12,7 @@ from inventory import (
 )
 from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
 from weapon import Weapons, inventory, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, draw_barricades, pieces_collected, unlock_sound, mw_sound
+from inventory_bar import draw_inventory, handle_inventory_click 
 
 # Weapon Popup system
 show_popup = False
@@ -277,6 +278,9 @@ while running:
             world_y = event.pos[1] + camera_y
             print(f"World Coordinates: ({world_x}, {world_y})")
 
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            handle_inventory_click(event.pos, player, inventory, SCREEN_HEIGHT)
+
         # puzzle 
         if active_puzzle and active_puzzle["active"]:
             handle_puzzle_input(event, active_puzzle, inventory)
@@ -304,6 +308,9 @@ while running:
                     if pieces_collected() == 3 and not main_weapon_unlocked:
                         main_weapon_unlocked = True
                         Weapons["MWfull"]["collected"] = True
+                        inventory.remove_item("MWpiece1")
+                        inventory.remove_item("MWpiece2")
+                        inventory.remove_item("MWpiece3")
                         inventory.add_item("MWfull")
                         main_weapon_popup_shown = True
                         popup_start_time = pygame.time.get_ticks()
@@ -321,9 +328,17 @@ while running:
 
     # Player Movement
     keys = pygame.key.get_pressed()
-
     # Active collision walls
     active_walls = normal_walls + stairs_walls
+    player.update(keys, active_walls)
+
+    # Player collision rect
+    player_rect = pygame.Rect(
+        player.x - 30,
+        player.y - 60,
+        60,
+        60
+    )    
     
     if room210_door.is_locked():
         active_walls += room210_walls
@@ -333,16 +348,6 @@ while running:
 
     if room206_door.is_locked():
         active_walls += room206_walls
-
-    player.update(keys, active_walls)
-
-    # Player collision rect
-    player_rect = pygame.Rect(
-        player.x - 30,
-        player.y - 60,
-        60,
-        60
-    )
 
     # Camera System
     camera_x = player.x - SCREEN_WIDTH // 2
@@ -408,6 +413,9 @@ while running:
     zone = Puzzle["Treadmill"]["zone"]
     pygame.draw.rect(screen, (255, 0, 0),
          pygame.Rect(zone.x - camera_x, zone.y - camera_y, zone.width, zone.height), 2)
+    
+        # draw inventory
+    draw_inventory(screen, inventory, Weapons, SCREEN_HEIGHT, SCREEN_WIDTH)
     
     for clue in Clue.values():
         czone = clue["zone"]

@@ -34,7 +34,7 @@ Weapons = {
     },
     "BananaPeel": {
         "zone":pygame.Rect(1428, 341, 90, 90), #just a placeholder cause im not sure of the exact position
-        "uses": 2,
+        "uses": 3,
         "prompt": "R",
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeel.png")).convert_alpha(), (90,90)),
@@ -87,14 +87,6 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "MWpiece3.png")).convert_alpha(), (80,80)),
         "popup_text": "Main weapon piece 3 collected!"
-    },
-    "Board":{
-        "zone": pygame.Rect(360,510,90,30),
-        "uses": 2,
-        "prompt": "R",
-        "collected": False, 
-        "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "Board.png")).convert_alpha(), (90,90)),
-        "popup_text": "Board = Barricade one of the doors to trap the receptionist. 2 use"
     },
     "MWfull":{
         "zone": None,
