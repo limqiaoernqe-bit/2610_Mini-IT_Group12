@@ -8,9 +8,11 @@ from inventory import (
     Inventory,
     ROOM_210_KEY,
     JANITOR_KEY,
-    ROOM_206_KEY
+    ROOM_206_KEY,
+    SECURITY_BADGE
 )
 from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
+
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -23,6 +25,9 @@ pygame.display.set_caption("Camera Test")
 clock = pygame.time.Clock()
 
 font = pygame.font.Font(None, 36)
+
+# Game State Variables
+janitor_defeated = False
 
 # Load Map
 tmx_data = pytmx.load_pygame("level2_map.tmx")
@@ -79,7 +84,13 @@ for layer in tmx_data.visible_layers:
 # Create Player
 player = Player()
 
-# Spwan position
+# Janitor spawn position
+janitor = Janitor(
+    1632,
+    1056
+)
+
+# Spawn position
 player.x = 2160
 player.y = 2160
 
@@ -178,6 +189,36 @@ room_211 = RoomTrigger(
     "Room 211"
 )
 
+# Stairs to Level 1
+stairs_trigger = RoomTrigger(
+    pygame.Rect(2475, 2776, 241, 104),
+    "Stairs", 
+    locked=True
+)
+
+# Static item hitboxes (keys placed at fixed map coordinates)
+room210_key_rect = pygame.Rect(
+    3160, 
+    2052, 
+    56, 
+    48
+)
+
+janitor_key_rect = pygame.Rect(
+    1360,
+    312,
+    64,
+    63
+)
+
+security_badge_rect = pygame.Rect(
+    3021,
+    2041,
+    59,
+    53
+)
+
+
 room_triggers = [
     maintenance_room,
     gym_room,
@@ -192,7 +233,8 @@ room_triggers = [
     room_201,
     room_207,
     room_209,
-    room_211
+    room_211,
+    stairs_trigger
 ]
 
 # Draw map function
@@ -224,14 +266,31 @@ while running:
 
         if event.type == pygame.KEYDOWN:
 
-            if event.key == pygame.K_k:
-                inventory.add_item(ROOM_210_KEY)
+            if event.key == pygame.K_r:
 
-            if event.key == pygame.K_l:
-                inventory.add_item(JANITOR_KEY)
+                # Open puzzle
+                if player_rect.colliderect(Puzzle["Treadmill"]["zone"]):
+                    Puzzle["Treadmill"]["active"] = True
 
-            if event.key == pygame.K_m:
-                inventory.add_item(ROOM_206_KEY)
+                # Pick up Room 210 Key
+                elif player_rect.colliderect(room210_key_rect):
+                    inventory.add_item(ROOM_210_KEY)
+
+                # Pick up Janitor Key
+                elif player_rect.colliderect(janitor_key_rect):
+                    inventory.add_item(JANITOR_KEY)
+
+                # Pick up Security Badge
+                elif player_rect.colliderect(security_badge_rect):
+                    inventory.add_item(SECURITY_BADGE) 
+
+                # Go to level 1
+                elif stairs_trigger.check_collision(player_rect):
+                    if not stairs_trigger.locked:
+                        print("Going to Level 1...")
+                        running = False
+                    else:
+                        print("The stairs are locked. Find a way to unlock them.")
 
             # close puzzle when press C
             if event.key == pygame.K_c and active_puzzle and active_puzzle["active"]:
@@ -276,6 +335,13 @@ while running:
 
     player.update(keys, active_walls)
 
+    janitor.update(player.x, player.y)
+
+    if janitor.defeat:
+        stairs_trigger.locked = False
+
+    janitor.draw(screen)
+
     # Camera System
     camera_x = player.x - SCREEN_WIDTH // 2
     camera_y = player.y - SCREEN_HEIGHT // 2
@@ -285,6 +351,9 @@ while running:
 
     # Draw map
     draw_map(screen, camera_x, camera_y)
+
+    # Draw Janitor
+    janitor.draw(screen, camera_x, camera_y)
 
     # Draw player 
     player.draw(screen, camera_x, camera_y)
