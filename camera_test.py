@@ -12,7 +12,7 @@ from inventory import (
     SECURITY_BADGE
 )
 from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
-
+from janitor import Janitor 
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -339,8 +339,6 @@ while running:
 
     if janitor.defeat:
         stairs_trigger.locked = False
-
-    janitor.draw(screen)
 
     # Camera System
     camera_x = player.x - SCREEN_WIDTH // 2
