@@ -1,4 +1,5 @@
 import pygame
+from weapon import active_traps
 
 SCALE_SIZE = (150, 150)
 
@@ -133,8 +134,13 @@ class Janitor:
                 active_traps.remove(trap)
 
 
-    def draw(self, screen):
-        rect = self.image.get_rect(midbottom=(self.x, self.y))
+    def draw(self, screen, camera_x=0, camera_y=0):
+        rect = self.image.get_rect(
+            midbottom=(
+                self.x - camera_x,
+                self.y - camera_y
+            )
+        )
         screen.blit(self.image, rect)
 
     def weapon_effect (self,effect):
