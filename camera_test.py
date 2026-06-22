@@ -1,6 +1,9 @@
 import pygame
 import pytmx
 
+# Used to open level 1 after player reaches the stairs
+import subprocess
+
 from player import Player
 from room_navigation import RoomTrigger
 from door import Door
@@ -14,14 +17,15 @@ from inventory import (
 from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
 from weapon import Weapons, inventory, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, draw_barricades, pieces_collected, unlock_sound, mw_sound
 from inventory_bar import draw_inventory, handle_inventory_click 
+from janitor import Janitor
 
 # Weapon Popup system
-show_popup = False
+weapon_popup = False
 popup_start_time = 0
 popup_duration = 1
 popup_message = ""
 main_weapon_unlocked = False
-msin_weapon_popup_shown = False
+main_weapon_popup_shown = False
 
 def draw_text(surface, text, rect, font, color):
     words = text.split(" ")
@@ -59,9 +63,6 @@ pygame.display.set_caption("Camera Test")
 clock = pygame.time.Clock()
 
 font = pygame.font.Font(None, 36)
-
-# Game State Variables
-janitor_defeated = False
 
 # Load Map
 tmx_data = pytmx.load_pygame("level2_map.tmx")
@@ -123,6 +124,8 @@ janitor = Janitor(
     1632,
     1056
 )
+
+enemies = [janitor]
 
 # Spawn position
 player.x = 2160
@@ -252,6 +255,10 @@ security_badge_rect = pygame.Rect(
     53
 )
 
+# Key collection status
+room210_key_collected = False
+janitor_key_collected = False
+security_badge_collected = False
 
 room_triggers = [
     maintenance_room,
@@ -293,6 +300,14 @@ while running:
 
     clock.tick(60)
 
+    # Player collision rect
+    player_rect = pygame.Rect(
+        player.x - 30,
+        player.y - 60,
+        60,
+        60
+    )  
+
     # Events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -307,21 +322,37 @@ while running:
                     Puzzle["Treadmill"]["active"] = True
 
                 # Pick up Room 210 Key
-                elif player_rect.colliderect(room210_key_rect):
+                elif (
+                    player_rect.colliderect(room210_key_rect)
+                    and not room210_key_collected
+                ):
                     inventory.add_item(ROOM_210_KEY)
+                    room210_key_collected = True
 
                 # Pick up Janitor Key
-                elif player_rect.colliderect(janitor_key_rect):
+                elif (
+                    player_rect.colliderect(janitor_key_rect)
+                    and not janitor_key_collected
+                ):
                     inventory.add_item(JANITOR_KEY)
-
+                    janitor_key_collected = True
+                    
                 # Pick up Security Badge
-                elif player_rect.colliderect(security_badge_rect):
-                    inventory.add_item(SECURITY_BADGE) 
+                elif (
+                    player_rect.colliderect(security_badge_rect)
+                    and not security_badge_collected
+                ):
+                    inventory.add_item(SECURITY_BADGE)
+                    security_badge_collected = True
 
-                # Go to level 1
+                # Go to level 1 after stairs are unlocked
                 elif stairs_trigger.check_collision(player_rect):
                     if not stairs_trigger.locked:
                         print("Going to Level 1...")
+                        # Close level 2 and open level 1
+                        pygame.quit()
+
+                        subprocess.run(["python", "level1_map.py"])
                         running = False
                     else:
                         print("The stairs are locked. Find a way to unlock them.")
@@ -374,30 +405,28 @@ while running:
                         popup_start_time = pygame.time.get_ticks()
                         mw_sound.play()
                     else:
-                        show_popup = True
+                        weapon_popup = True
                         popup_start_time = pygame.time.get_ticks()
                         popup_message = weapon["popup_text"]
 
-                        # Use Weapons
+                        # Use currectly selected eapons
             if event.key == pygame.K_w:
-                if inventory:
-                    current_weapon = player.held_weapon
-                    use_weapon(current_weapon, player_rect, enemies, player.direction)
+
+                if player.held_weapon is not None:
+                    use_weapon(
+                        player.held_weapon,
+                        player_rect,
+                        enemies,
+                        player.direction
+                    )
 
     # Player Movement
     keys = pygame.key.get_pressed()
+
     # Active collision walls
     active_walls = normal_walls + stairs_walls
-    player.update(keys, active_walls)
 
-    # Player collision rect
-    player_rect = pygame.Rect(
-        player.x - 30,
-        player.y - 60,
-        60,
-        60
-    )    
-    
+    # Locked room walls    
     if room210_door.is_locked():
         active_walls += room210_walls
 
@@ -406,6 +435,20 @@ while running:
 
     if room206_door.is_locked():
         active_walls += room206_walls
+
+    # Move player
+    player.update(keys, active_walls)
+
+    # Move janitor
+    janitor.update(
+        player.x, 
+        player.y,
+        active_walls
+    )
+
+    # Unlock stairs when janitor is defeated
+    if janitor.defeat:
+        stairs_trigger.locked = False
 
     # Camera System
     camera_x = player.x - SCREEN_WIDTH // 2
@@ -425,18 +468,18 @@ while running:
 
 # WEAPON PART
     # hide popup
-    if show_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 1000):
-        show_popup = False
+    if weapon_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 1000):
+        weapon_popup = False
 
         # Effect when main weapon shows
-    if show_popup or (main_weapon_unlocked and main_weapon_popup_shown):
+    if weapon_popup or (main_weapon_unlocked and main_weapon_popup_shown):
         dark_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         dark_overlay.set_alpha(180) # darkens the bg and makes the weapon stands out 
         dark_overlay.fill((0,0,0))
         screen.blit(dark_overlay, (0,0))
 
         # popup box
-    if show_popup:
+    if weapon_popup:
         popup_width = 400
         popup_height = 200
         popup_x =(SCREEN_WIDTH - popup_width) //2 
@@ -455,7 +498,7 @@ while running:
 
         if pygame.time.get_ticks() - popup_start_time > 1000:
             main_weapon_popup_shown = False
-            show_popup = True
+            weapon_popup = True
             popup_start_time = pygame.time.get_ticks()
             popup_message = Weapons["MWfull"]["popup_text"]
 
@@ -561,8 +604,12 @@ while running:
                 2
             )
 
-            if room.locked:
+            if room == stairs_trigger and room.locked:
+                message = "Defeat the janitor to unlock the stairs."
+
+            elif room.locked:
                 message = f"{room.message} is locked. Please find a key."
+
             else:
                 message = room.message
 
