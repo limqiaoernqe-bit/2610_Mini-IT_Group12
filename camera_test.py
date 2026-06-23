@@ -127,10 +127,6 @@ janitor = Janitor(
 
 enemies = [janitor]
 
-# Spawn position
-player.x = 2160
-player.y = 2160
-
 inventory = Inventory()
 
 # Currently active puzzle (None when no puzzle is active)
@@ -232,6 +228,27 @@ stairs_trigger = RoomTrigger(
     "Stairs", 
     locked = False
 )
+
+# Spawn position logic
+
+# Default when first playing
+spawn_mode = "maintenance"
+
+# Coming back from level 1
+try:
+    import sys
+    if len (sys.argv) > 1:
+        spawn_mode = sys.argv[1]
+except:
+    pass
+
+if spawn_mode == "maintenance":
+    player.x = 2160
+    player.y = 2160
+elif spawn_mode == "stairs":
+    # Place the player right at the stairs trigger
+    player.x = 2589
+    player.y = 2765
 
 # Static item hitboxes (keys placed at fixed map coordinates)
 room210_key_rect = pygame.Rect(
