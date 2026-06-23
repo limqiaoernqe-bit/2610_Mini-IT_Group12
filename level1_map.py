@@ -1,5 +1,7 @@
 import pygame
 import pytmx
+import subprocess
+from ghost import Ghost
 
 from player import Player
 from door import Door
@@ -35,7 +37,8 @@ collision_layers = [
     "room116 collision",
     "room117 collision",
     "room116_117 collision",
-    "exit collision"
+    "exit collision",
+    "stairs collision"
 ]
 
 normal_walls = []
@@ -44,6 +47,7 @@ room116_walls = []
 room117_walls = []
 room116_117_walls = []
 exit_door_walls = []
+stairs_walls = []
 
 # Create collision rectangles
 for layer in tmx_data.visible_layers:
@@ -80,6 +84,9 @@ for layer in tmx_data.visible_layers:
 
                     elif layer.name == "exit collision":
                         exit_door_walls.append(wall_rect)
+
+                    elif layer.name == "stairs collision":
+                        stairs_walls.append(wall_rect)
 
 # Create player
 player = Player()
@@ -188,6 +195,23 @@ exit_trigger = RoomTrigger(
     locked=True
 )
 
+# Stairs back to level 2
+stairs_to_level2 = RoomTrigger(
+    pygame.Rect(1760, 2768, 220, 94),
+    "Stairs"
+)
+
+# Static item hitboxes (keys placed at fixed map coordinates)
+exit_key_rect = pygame.Rect(
+    2492,
+    1752,
+    39,
+    37
+)
+
+# Key collection status
+exit_key_collected = False
+
 room_triggers = [
     security_room,
     lobby,
@@ -233,27 +257,31 @@ while running:
 
         if event.type == pygame.KEYDOWN:
 
-            # TESTING TO GET ITEMS TO UNLOCK DOORS
-            if event.key == pygame.K_p:
-                inventory.add_item(SECURITY_BADGE)
+            # Pick up exit door key
+            if (
+                    player_rect.colliderect(exit_key_rect)
+                    and not exit_key_collected
+                ):
+                    inventory.add_item(EXIT_DOOR_KEY)
+                    exit_key_collected = True
 
-            if event.key == pygame.K_i:
-                inventory.add_item(ROOM116_KEY)
+            # Go back to level 2
+            if event.key == pygame.K_r:
+                
+                if stairs_to_level2.check_collision(player_rect):
+                    print("Going back to Level 2...")
 
-            if event.key == pygame.K_o:
-                inventory.add_item(ROOM117_KEY)
-            
-            if event.key == pygame.K_u:
-                inventory.add_item(ROOM116_117_CODE)
-
-            if event.key == pygame.K_y:
-                inventory.add_item(EXIT_DOOR_KEY)
-
+                    # Close level 1 and open level 2
+                    pygame.quit()
+                    subprocess.run(["python", "camera_test.py", "stairs"])
+                    running = False
+    
     # Player Movement
     keys = pygame.key.get_pressed()
 
     # Active collision walls
     active_walls = normal_walls.copy() 
+    active_walls += stairs_walls
 
     if security_door.is_locked():
         active_walls += security_walls
@@ -292,6 +320,20 @@ while running:
         40,
         40
     )
+
+    # Show R interaction prompt above stairs
+    if stairs_to_level2.check_collision(player_rect):
+
+        text = font.render("R", True, (0, 0, 0))
+
+        text_rect = text.get_rect(
+            center = (
+                stairs_to_level2.rect.centerx - camera_x,
+                stairs_to_level2.rect.y - camera_y - 20
+            )
+        )
+
+        screen.blit(text, text_rect)
 
     # Press E to unlock Security Room
     if security_room.check_collision(player_rect):
