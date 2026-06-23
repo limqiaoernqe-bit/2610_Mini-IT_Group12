@@ -112,4 +112,4 @@ class ObjectInteraction:
         screen.blit(text, text.get_rect(center=(screen.get_width() // 2, 460)))
 
 #level 2 boltcutter for janitor's locker to get security badge, janitorkey- unlock janitor's room, 210key- unlock jay's room
-#level 1 coordinates for fusebox-screwdriver, 116key-unlcok mark's room 
+#level 1 coordinates for fusebox-screwdriver, exit key in recetionist locker - trigger ending scene, room 117- bathroom mirror

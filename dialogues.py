@@ -138,3 +138,20 @@ SAVECHLOE_DIALOGUE = [ ("Chloe", "chloe_front_detailed.png","Mia, thank god! "),
                        ("Chloe", "chloe_front_detailed.png","Okay... "), 
                        ("Chloe", "chloe_front_detailed.png","By the way, I heard Jay's scream in a room near the gym."),
                        ("Mia", "mia_front_detailed.png", "Alright, thanks."),]
+
+SAVEJAY_DIALOGUE = [   ("Mia", "mia_front_detailed.png", "Chloe's hiding somewhere. Go find her and hide."),
+                       ("Jay", "jay_front_detailed.png", "Okay..."),
+                    ]
+
+SAVEMARK_DIALOGUE = [ ("Mark", "mark_front_detailed.png","Oh my god, mia! What's happening? "),
+                       ("Mia", "mia_front_detailed.png", "Shh...get to a room and hide with the others first."),
+                       ("Mia", "mia_front_detailed.png", "Once i find james, then we'll get out of here together."),
+                       ("James", "james_front_detailed.png","SOMEBODY HELP!"),
+                       ] 
+
+SAVEJAMES_DIALOGUE = [ ("James", "james_front_detailed.png","Mia, im so glad youre okay! Wheres everyone else? "),
+                       ("Mia", "mia_front_detailed.png", "No time to explain. "),
+                       ("Mia", "mia_front_detailed.png", "We have to go right now! "),
+                       ] 
+
+ENDING_DIALOGUE = [("Narrator", None,"Mia and her friends escaped that haunted hotel and swore to never go there again."),]

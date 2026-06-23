@@ -1,5 +1,4 @@
 import pygame
-from weapon import active_traps
 
 SCALE_SIZE = (150, 150)
 
@@ -8,9 +7,6 @@ class Janitor:
         self.x = x
         self.y = y
         self.speed = 1
-        self.state = "chasing"
-        self.defeat = False
-        self.stun_timer = 0
 
         self.frame = 0
         self.anim_speed = 0.12
@@ -32,8 +28,7 @@ class Janitor:
         self.front_sheet = pygame.image.load("assets/janitor_walk_front.png").convert_alpha()
         self.back_sheet = pygame.image.load("assets/janitor_walk_back.png").convert_alpha()
 
-        # ✅ FIXED SIZES
-        # left/right = 2x2 (4 frames total)
+       
         self.walk_left = self.load_sheet(self.left_sheet, 2, 2)
         self.walk_right = self.load_sheet(self.right_sheet, 2, 2)
 
@@ -46,6 +41,8 @@ class Janitor:
         self.current_frames = self.walk_front
 
         self.stop_distance = 40
+
+        self.rect = self.image.get_rect(midbottom=(self.x, self.y))
 
   
     def load_sheet(self, sheet, rows, cols):
@@ -75,27 +72,10 @@ class Janitor:
             self.current_frames = new_frames
             self.frame = 0  
 
-    def update(self, player_x, player_y, walls):
-        # if defeats the janitor js stops moving
-        if self.defeat:
-            return 
-         # stops the janitor for 10 seconds
-        if self.state == "stunned":
-            if pygame.time.get_ticks() - self.stun_timer > 10000: 
-                self.state = "chasing"
-            else:
-                return
+    def update(self, player_x, player_y):
 
         dx = player_x - self.x
         dy = player_y - self.y
-
-        # Janitor collision
-        janitor_rect = pygame.Rect(
-            self.x - 20,
-            self.y - 40,
-            40,
-            40
-        )
 
         # stop distance check (unchanged)
         if abs(dx) < self.stop_distance and abs(dy) < self.stop_distance:
@@ -107,110 +87,42 @@ class Janitor:
 
         # movement + animation logic (FIXED DIAGONAL ISSUE)
 
-        # Movement values used for collision checking
-        move_x = 0
-        move_y = 0
-    
-        # Janitor follows the player by moving in the direction
-        # with the biggest distance first
+        # PRIORITY: vertical movement controls animation (prevents sprite flicker)
+        if dy < 0:
+            # moving up (including diagonals)
+            self.y -= self.speed
+            self.direction = "back"
+            self.set_frames(self.walk_back)
 
-        if abs(dx) > abs(dy):
-            # Move horizontally if player is further left/right
+        elif dy > 0:
+            # moving down (including diagonals)
+            self.y += self.speed
+            self.direction = "front"
+            self.set_frames(self.walk_front)
+
+        else:
+            # only horizontal movement if no vertical movement
             if dx > 0:
-                move_x = self.speed
+                self.x += self.speed
                 self.direction = "right"
                 self.set_frames(self.walk_right)
 
-            else:
-                move_x = -self.speed
+            elif dx < 0:
+                self.x -= self.speed
                 self.direction = "left"
                 self.set_frames(self.walk_left)
-            
-        else:
-            # Move vertically if player is further up/down
-            if dy > 0:
-                move_y = self.speed
-                self.direction = "front"
-                self.set_frames(self.walk_front)
-
-            else:
-                move_y = -self.speed
-                self.direction = "back"
-                self.set_frames(self.walk_back)
-                
-        # Horizontal wall collision
-        janitor_rect.x += move_x
-
-        blocked = False
-
-        for wall in walls:
-            if janitor_rect.colliderect(wall):
-                blocked = True 
-                break
-        
-        # Move janitor only if path not blocked
-        if not blocked:
-            self.x += move_x
-
-        # If blocked horizontally, try going vertically
-        else:
-            # Try moving around obstacle
-            if dy > 0:
-                self.y += self.speed
-
-            elif dy < 0:
-                self.y -+ self.speed        
-
-        # Vertical wall collision
-        janitor_rect.y += move_y
-
-        blocked = False
-
-        for wall in walls:
-            if janitor_rect.colliderect(wall):
-                blocked = True
-                break
-        
-        # Move janitor only if path not blocked
-        if not blocked:
-            self.y += move_y
-
-        # If blocked vertically, try going horizontally
-        else:
-            # Try moving around obstacle
-            if dx > 0:
-                self.x += self.speed
-
-            elif dx < 0:
-                self.y -= self.speed
 
         # apply animation frame
         self.image = self.animate()
-
-       # check for trap collisions
-        for trap in active_traps[:]:
-            if self.image.get_rect(center=(self.x, self.y)).colliderect(trap["rect"]):
-                self.weapon_effect("BananaPeel")
-                active_traps.remove(trap)
-
+        self.rect.midbottom = (self.x, self.y)
 
     def draw(self, screen, camera_x=0, camera_y=0):
+
         rect = self.image.get_rect(
             midbottom=(
                 self.x - camera_x,
                 self.y - camera_y
             )
         )
+
         screen.blit(self.image, rect)
-
-    def weapon_effect (self,effect):
-        if effect == "BananaPeel":
-            self.speed = max(1,self.speed -1)
-
-        elif effect == "CleaningSpray":
-            self.state = "stunned" 
-            self.stun_timer = pygame.time.get_ticks()
-
-        elif effect == "BaseballBat":
-            self.state = "defeated"
-            self.defeat = True
