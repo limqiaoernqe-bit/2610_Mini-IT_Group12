@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.1" orientation="orthogonal" renderorder="right-down" width="80" height="60" tilewidth="48" tileheight="48" infinite="0" nextlayerid="29" nextobjectid="29">
+<map version="1.10" tiledversion="1.12.1" orientation="orthogonal" renderorder="right-down" width="80" height="60" tilewidth="48" tileheight="48" infinite="0" nextlayerid="30" nextobjectid="34">
  <tileset firstgid="1" name="Rooms" tilewidth="48" tileheight="48" tilecount="391" columns="17">
   <image source="tiles_assets/Room_Builder_free_48x48.png" width="816" height="1104"/>
  </tileset>
@@ -815,6 +815,10 @@
   <object id="25" name="Room 117" x="673" y="238" width="67" height="100"/>
   <object id="26" name="Security Room" x="2305" y="2037" width="48" height="168"/>
   <object id="28" name="Exit door" x="3782" y="2157" width="57" height="145"/>
+  <object id="29" name="Stairs Trigger" x="1760" y="2768" width="220" height="94"/>
+ </objectgroup>
+ <objectgroup id="29" name="Keys Objects">
+  <object id="33" name="Exit Key" x="2492" y="1752" width="39" height="37"/>
  </objectgroup>
  <layer id="19" name="security collision" width="80" height="60">
   <data encoding="csv">
