@@ -75,7 +75,7 @@ class Janitor:
             self.current_frames = new_frames
             self.frame = 0  
 
-    def update(self, player_x, player_y):
+    def update(self, player_x, player_y, walls):
         # if defeats the janitor js stops moving
         if self.defeat:
             return 
@@ -89,6 +89,14 @@ class Janitor:
         dx = player_x - self.x
         dy = player_y - self.y
 
+        # Janitor collision
+        janitor_rect = pygame.Rect(
+            self.x - 20,
+            self.y - 40,
+            40,
+            40
+        )
+
         # stop distance check (unchanged)
         if abs(dx) < self.stop_distance and abs(dy) < self.stop_distance:
             if self.direction == "back":
@@ -99,30 +107,82 @@ class Janitor:
 
         # movement + animation logic (FIXED DIAGONAL ISSUE)
 
-        # PRIORITY: vertical movement controls animation (prevents sprite flicker)
-        if dy < 0:
-            # moving up (including diagonals)
-            self.y -= self.speed
-            self.direction = "back"
-            self.set_frames(self.walk_back)
+        # Movement values used for collision checking
+        move_x = 0
+        move_y = 0
+    
+        # Janitor follows the player by moving in the direction
+        # with the biggest distance first
 
-        elif dy > 0:
-            # moving down (including diagonals)
-            self.y += self.speed
-            self.direction = "front"
-            self.set_frames(self.walk_front)
-
-        else:
-            # only horizontal movement if no vertical movement
+        if abs(dx) > abs(dy):
+            # Move horizontally if player is further left/right
             if dx > 0:
-                self.x += self.speed
+                move_x = self.speed
                 self.direction = "right"
                 self.set_frames(self.walk_right)
 
-            elif dx < 0:
-                self.x -= self.speed
+            else:
+                move_x = -self.speed
                 self.direction = "left"
                 self.set_frames(self.walk_left)
+            
+        else:
+            # Move vertically if player is further up/down
+            if dy > 0:
+                move_y = self.speed
+                self.direction = "front"
+                self.set_frames(self.walk_front)
+
+            else:
+                move_y = -self.speed
+                self.direction = "back"
+                self.set_frames(self.walk_back)
+                
+        # Horizontal wall collision
+        janitor_rect.x += move_x
+
+        blocked = False
+
+        for wall in walls:
+            if janitor_rect.colliderect(wall):
+                blocked = True 
+                break
+        
+        # Move janitor only if path not blocked
+        if not blocked:
+            self.x += move_x
+
+        # If blocked horizontally, try going vertically
+        else:
+            # Try moving around obstacle
+            if dy > 0:
+                self.y += self.speed
+
+            elif dy < 0:
+                self.y -+ self.speed        
+
+        # Vertical wall collision
+        janitor_rect.y += move_y
+
+        blocked = False
+
+        for wall in walls:
+            if janitor_rect.colliderect(wall):
+                blocked = True
+                break
+        
+        # Move janitor only if path not blocked
+        if not blocked:
+            self.y += move_y
+
+        # If blocked vertically, try going horizontally
+        else:
+            # Try moving around obstacle
+            if dx > 0:
+                self.x += self.speed
+
+            elif dx < 0:
+                self.y -= self.speed
 
         # apply animation frame
         self.image = self.animate()
