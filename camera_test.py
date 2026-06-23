@@ -230,7 +230,7 @@ room_211 = RoomTrigger(
 stairs_trigger = RoomTrigger(
     pygame.Rect(2475, 2776, 241, 104),
     "Stairs", 
-    locked=True
+    locked = False
 )
 
 # Static item hitboxes (keys placed at fixed map coordinates)
@@ -530,6 +530,21 @@ while running:
         czone = clue["zone"]
         pygame.draw.rect(screen, (255, 0, 0),
             pygame.Rect(czone.x - camera_x, czone.y - camera_y, czone.width, czone.height), 2)
+        
+    # Show R interaction prompt for level 1 stairs
+    if stairs_trigger.check_collision(player_rect):
+
+        if not stairs_trigger.locked:
+            text = font.render("R", True, (0, 0, 0))
+
+            text_rect = text.get_rect(
+                center = (
+                    stairs_trigger.rect.centerx - camera_x,
+                    stairs_trigger.rect.y - camera_y - 20
+                )
+            )
+
+            screen.blit(text, text_rect)
 
     # Press E to unlock Room 210
     if room_210.check_collision(player_rect):
