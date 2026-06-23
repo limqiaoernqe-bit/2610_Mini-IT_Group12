@@ -11,7 +11,7 @@ from inventory import (
     ROOM_206_KEY
 )
 from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
-from weapon import Weapons, inventory, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, draw_barricades, pieces_collected, unlock_sound, mw_sound
+from weapon import Weapons, inventory, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound
 from inventory_bar import draw_inventory, handle_inventory_click 
 
 # Weapon Popup system
@@ -21,6 +21,7 @@ popup_duration = 1
 popup_message = ""
 main_weapon_unlocked = False
 msin_weapon_popup_shown = False
+selected_index = None
 
 def draw_text(surface, text, rect, font, color):
     words = text.split(" ")
@@ -278,6 +279,12 @@ while running:
             world_y = event.pos[1] + camera_y
             print(f"World Coordinates: ({world_x}, {world_y})")
 
+            mouse_x, mouse_y = event.pos
+            for i, weapon_name in enumerate(inventory.items):
+                rect = pygame.Rect(50 + i*60, SCREEN_HEIGHT-60, 50, 50)
+                if rect.collidepoint(mouse_x, mouse_y):
+                   selected_index = i
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             handle_inventory_click(event.pos, player, inventory, SCREEN_HEIGHT)
 
@@ -321,10 +328,8 @@ while running:
                         popup_message = weapon["popup_text"]
 
                         # Use Weapons
-            if event.key == pygame.K_w:
-                if inventory:
-                    current_weapon = player.held_weapon
-                    use_weapon(current_weapon, player_rect, enemies, player.direction)
+            if event.key == pygame.K_w and player.held_weapon:
+                    use_weapon(weapon_name, player_rect, enemies, player.direction)
 
     # Player Movement
     keys = pygame.key.get_pressed()
@@ -407,7 +412,6 @@ while running:
     # draw use weapon
     draw_traps(screen)
     draw_salt(screen)
-    draw_barricades(screen)
 
     # outline puzzle zone & clue js to check
     zone = Puzzle["Treadmill"]["zone"]

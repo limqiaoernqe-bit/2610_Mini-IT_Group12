@@ -37,7 +37,7 @@ class Player:
 
         self.image = self.idle_front
         self.direction = "front"
-        self.hold_weapon = None
+        self.held_weapon = None
 
     def load_sheet(self, sheet, rows, cols):
         frames = []
@@ -143,21 +143,3 @@ class Player:
         rect = self.image.get_rect(midbottom=(self.x - camera_x, self.y - camera_y))
         screen.blit(self.image, rect)
 
-        # if player holds weapon 
-        if self.hold_weapon is not None and self.hold_weapon in Weapons:
-             weapon_img = Weapons [self,hold_weapon]["image"]
-
-             # flip 
-             if self.direction == "left": 
-                  weapon_img = pygame.transform.flip(weapon_img, True, False)
-                  offset_x = rect.x + 20
-                  offset_y = rect.y +40
-             elif self.direction == "right":
-                  offset_x = rect.x +40
-                  offset_y = rect.y +60
-
-             else:
-              offset_x = rect.x + 50
-              offset_y = rect.y + 30
-
-             screen.blit(weapon_img, (offset_x, offset_y))

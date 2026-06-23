@@ -58,7 +58,7 @@ class Ghost:
         next_y = self.y + dy * self.speed
 
         future_rect = self.image.get_rect(midbottom=(next_x, next_y))
-        for salt in salt_lines:
+        for salt in salt_line:
             if future_rect.colliderect(salt["rect"]):
                 return 
             

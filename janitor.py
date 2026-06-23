@@ -1,6 +1,7 @@
 import pygame
 
 SCALE_SIZE = (150, 150)
+from weapon import active_traps
 
 class Janitor:
     def __init__(self, x, y):

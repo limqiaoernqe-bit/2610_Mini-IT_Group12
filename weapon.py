@@ -38,7 +38,7 @@ Weapons = {
         "prompt": "R",
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeel.png")).convert_alpha(), (90,90)),
-        "popup_text": "Banana Peel = Helps slow down the janitor. 2 use",
+        "popup_text": "Banana Peel = Helps slow down the janitor. 3 use",
         "image_used": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeelUse.png")).convert_alpha(), (90,90)),
     },
     "CleaningSpray": {
@@ -118,7 +118,7 @@ def use_weapon(name, player_rect, enemies, player_direction):
        Weapons[name]["uses"] -=1
     # if uses reach to 0 then u remove it from the inventory
        if Weapons[name]["uses"] <=0 :
-           inventory.remove(Weapons[name])
+           inventory.remove_item(name)
            return
        
     if name == "BananaPeel":
@@ -139,10 +139,6 @@ def use_weapon(name, player_rect, enemies, player_direction):
         for enemy in enemies:
             if player_rect.colliderect(enemy.image.get_rect(center=(enemy.x,enemy.y))):
                 enemy.weapon_effect("BaseballBat")
-
-    elif name == "Board":
-        new_barricade = pygame.Rect(player_rect.x, player_rect.y, 80,20)
-        barricade.append(new_barricade)
 
     elif name == "MWfull":
         vaccum_sound.play()
@@ -168,8 +164,5 @@ def draw_salt(screen):
     for salt in salt_line: 
         pygame.draw.rect(screen, (255, 255, 255), salt)
 
-def draw_barricades(screen):
-    for b in barricade:
-        board_image = Weapons["Board"]["image transformed"]
-        screen.blit(board_image, b.topleft)
+
 

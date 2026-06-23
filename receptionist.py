@@ -1,6 +1,7 @@
 import pygame
 
 SCALE_SIZE = (140, 140)
+from weapon import active_traps
 
 class Receptionist:
     def __init__(self, x, y):
