@@ -15,6 +15,14 @@
 # =========================
 # SCENE STATE TRACKER
 # =========================
+import pygame
+from dialogues import (
+    SAVECHLOE_DIALOGUE,
+    SAVEJAY_DIALOGUE,
+    SAVEMARK_DIALOGUE,
+    SAVEJAMES_DIALOGUE,
+    ENDING_DIALOGUE
+)
 
 class HotelSceneManager2:
     def __init__(self):
