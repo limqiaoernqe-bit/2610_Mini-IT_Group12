@@ -17,12 +17,14 @@ from inventory import (
     Inventory
 )
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+from scenes.hotelscene2 import on_mark_saved, on_james_saved, on_game_end, scene_manager
+
+screen_width = 1280
+screen_height = 720
 
 pygame.init()
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Level 1")
 
 clock = pygame.time.Clock()
@@ -336,8 +338,8 @@ while running:
     )
 
     # Camera System
-    camera_x = player.x - SCREEN_WIDTH // 2
-    camera_y = player.y - SCREEN_HEIGHT // 2
+    camera_x = player.x - screen_width // 2
+    camera_y = player.y - screen_height // 2
 
     # Draw everything
     screen.fill((0, 0, 0))
@@ -385,23 +387,27 @@ while running:
                 security_door
             )
 
-    # Press E to unlock Room 116
+    # Press E to unlock Room 116 (Mark's room)
     if room_116.check_collision(player_rect):
         
-        if keys[pygame.K_e]:
+        if keys[pygame.K_e] and room116_door.is_locked():
             inventory.use_item(
                 ROOM116_KEY,
                 room116_door
             )
+            # Trigger Mark's cutscene
+            on_mark_saved()
 
-    # Press E to unlock Room 117
+    # Press E to unlock Room 117 (James's room)
     if room_117.check_collision(player_rect):
         
-        if keys[pygame.K_e]:
+        if keys[pygame.K_e] and room117_door.is_locked():
             inventory.use_item(
                 ROOM117_KEY,
                 room117_door
             )
+            # Trigger James's cutscene
+            on_james_saved
 
      # Press E to unlock Connecting Door
     if room116_117.check_collision(player_rect):
