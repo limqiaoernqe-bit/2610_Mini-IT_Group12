@@ -1,10 +1,10 @@
 import pygame
 import pytmx
 import subprocess
+
 from ghost import Ghost
 from receptionist import Receptionist
 from weapon import barricade
-
 from player import Player
 from door import Door
 from room_navigation import RoomTrigger
@@ -94,8 +94,16 @@ receptionist = Receptionist(
     1872
 )
 
+# Ghost spawn position
+ghost = Ghost(
+    864,
+    864
+)
 # Level 1 enemies
-enemies = [receptionist]
+enemies = [
+    receptionist,
+    ghost
+]
 
 # Spawn position
 player.x = 1776
@@ -287,7 +295,7 @@ while running:
 
                     # Close level 1 and open level 2
                     pygame.quit()
-                    subprocess.run(["python", "camera_test.py", "stairs"])
+                    subprocess.run(["python", "level2_map.py.py", "stairs"])
                     running = False
     
     # Player Movement
@@ -321,6 +329,12 @@ while running:
     barricade
     )
 
+    # Move ghost
+    ghost.update(
+        player.x,
+        player.y
+    )
+
     # Camera System
     camera_x = player.x - SCREEN_WIDTH // 2
     camera_y = player.y - SCREEN_HEIGHT // 2
@@ -333,6 +347,13 @@ while running:
 
     # Draw receptionist
     receptionist.draw(
+        screen,
+        camera_x,
+        camera_y
+    )
+
+    # Draw ghost
+    ghost.draw(
         screen,
         camera_x,
         camera_y
