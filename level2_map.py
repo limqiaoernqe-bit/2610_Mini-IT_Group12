@@ -4,18 +4,12 @@ import pytmx
 # Used to open level 1 after player reaches the stairs
 import subprocess
 
+from inventory import game_inventory as inventory, ROOM_210_KEY, ROOM_206_KEY, JANITOR_KEY, SECURITY_BADGE
 from player import Player
 from room_navigation import RoomTrigger
 from door import Door
-from inventory import (
-    Inventory,
-    ROOM_210_KEY,
-    JANITOR_KEY,
-    ROOM_206_KEY,
-    SECURITY_BADGE
-)
 from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
-from weapon import Weapons, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound, active_traps
+from weapon import L2Weapons, Weapons, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound, active_traps
 from inventory_bar import draw_inventory, handle_inventory_click 
 from janitor import Janitor
 from object_interaction import ObjectInteraction
@@ -57,6 +51,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
 pygame.init()
+pygame.font.init()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Camera Test")
@@ -64,6 +59,7 @@ pygame.display.set_caption("Camera Test")
 clock = pygame.time.Clock()
 
 font = pygame.font.Font(None, 36)
+object_interaction = ObjectInteraction()
 
 # Load Map
 tmx_data = pytmx.load_pygame("level2_map.tmx")
@@ -129,8 +125,6 @@ janitor = Janitor(
 object_interaction = ObjectInteraction()
 
 enemies = [janitor]
-
-inventory = Inventory()
 
 # Currently active puzzle (None when no puzzle is active)
 active_puzzle = None
@@ -423,9 +417,10 @@ while running:
 
         # Collect Weapons
             if event.key == pygame.K_r:
-              for name, weapon in Weapons.items():
+              for name, weapon in L2Weapons.items():
                 if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
                     weapon["collected"] = True
+                    Weapons[name]["collected"] = True
                     unlock_sound.play()
                     inventory.add_item(name)
 
@@ -479,6 +474,7 @@ while running:
     janitor.update(
         player.x, 
         player.y,
+        active_walls
     )
 
     # Unlock stairs when janitor is defeated
@@ -538,7 +534,7 @@ while running:
             popup_message = Weapons["MWfull"]["popup_text"]
 
     # Draw image of weapons
-    for name, weapon in Weapons.items():
+    for name, weapon in L2Weapons.items():
         if weapon["zone"] is not None and not weapon["collected"]:
             screen.blit(weapon["image"],( weapon["zone"].x - camera_x, weapon["zone"].y - camera_y))
         show_prompt(screen, font, player_rect, weapon, camera_x, camera_y)
@@ -553,7 +549,7 @@ while running:
          pygame.Rect(zone.x - camera_x, zone.y - camera_y, zone.width, zone.height), 2)
     
         # draw inventory
-    draw_inventory(screen, inventory, Weapons, SCREEN_HEIGHT, SCREEN_WIDTH)
+    draw_inventory(screen, inventory, Weapons, object_interaction, SCREEN_HEIGHT, SCREEN_WIDTH)
     
     for clue in Clue.values():
         czone = clue["zone"]

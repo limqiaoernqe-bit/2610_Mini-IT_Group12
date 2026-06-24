@@ -1,14 +1,17 @@
 import pygame
+from inventory import game_inventory as inventory
 
 class ObjectInteraction:
     def __init__(self):
-        self.font = pygame.font.SysFont("arial", 32)
+        pygame.font.init()
+        self.font = pygame.font.SysFont("arial",32) 
+        self.visible = False
+        self.current_item = None
 
         # =========================
         # INTERACTION ZONES (TEMP)
         # =========================
         
-
         self.zones = {
             "box": {
                 "zone": pygame.Rect(3160, 2052, 56, 48)  # 210 key in janitor's room
@@ -23,7 +26,7 @@ class ObjectInteraction:
                 "zone": pygame.Rect(3021, 2041, 59,53 ) # badge in janitor's locker
             },
             "stool": {
-                "zone": pygame.Rect(1360, 312, 64, 63) # janitor key in gym
+                "zone": pygame.Rect(1407, 410, 64, 63) # janitor key in gym
             }
         }
 
@@ -54,10 +57,14 @@ class ObjectInteraction:
             "116key": self.load("assets/116key.png"),
             "janitorkey": self.load("assets/janitorkey.png"),
             "badge": self.load("assets/badge.png"),
+            "room_206_key": self.load("assets/206key.png")
         }
 
         self.visible = False
         self.current_item = None
+    def draw(self, screen):
+        if not self.font:
+           self.font = pygame.font.SysFont("arial", 32)
 
     # -------------------------
     # LOAD IMAGE
@@ -85,6 +92,14 @@ class ObjectInteraction:
     def trigger(self, item_name):
         self.visible = True
         self.current_item = item_name
+
+        # add item into inventory
+        if isinstance(item_name, list):
+            for item in item_name:
+                inventory.add_item(item)
+
+        else:
+            inventory.add_item(item_name)
 
     def hide(self):
         self.visible = False

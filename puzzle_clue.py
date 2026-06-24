@@ -150,6 +150,7 @@ def puzzle_screen(puzzle,screen, font, screen_width=800, screen_height=600):
           screen.blit(end_text,end_text_rect)
 
 def handle_puzzle_input(event, active_puzzle, inventory):
+    from inventory import game_inventory as inventory, ROOM_206_KEY
     if event.type == pygame.KEYDOWN:    
                if event.key == K_BACKSPACE:
                   active_puzzle["answer"] = active_puzzle["answer"][:-1]
@@ -157,7 +158,8 @@ def handle_puzzle_input(event, active_puzzle, inventory):
                   if active_puzzle ["answer"].strip() == active_puzzle["solution"]:
                      active_puzzle["collected"] = True
                      active_puzzle["end_message"] = "Correct! Key to Door 206 is in your inventory."
-                     inventory.add_item("Door Key 206")
+                     inventory.add_item(ROOM_206_KEY)
+                     object_interaction.trigger("room_206_key")
                      active_puzzle["correct_start"] = pygame.time.get_ticks()
                   else:
                         active_puzzle["end_message"] = "Wrong answer. Try again!"

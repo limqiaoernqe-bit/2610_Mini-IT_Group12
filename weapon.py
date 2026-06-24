@@ -20,7 +20,7 @@ vaccum_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "vacuum.wav"))
 swing_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "baseballswing.mp3"))
 
 # Weapon Zone
-Weapons = {
+L2Weapons = {
     #Level 2 Weapons
     "MWpiece1": {
         "zone": pygame.Rect(1379, 894, 90, 90), #just a placeholder cause im not sure of the exact position
@@ -53,10 +53,13 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BaseballBat.png")).convert_alpha(), (90,90)),
         "popup_text": "Baseball Bat = Helps defeat the janitor"
-    },
+    } 
+}
+
+L1Weapons = {
     #Level 1 Weapons
     "MWpiece2": {
-        "zone": pygame.Rect(150, 380, 80, 55),
+        "zone": pygame.Rect(2036, 2425, 90, 90),
         "uses": 0,
         "prompt": "R",
         "collected": False,
@@ -64,7 +67,7 @@ Weapons = {
         "popup_text": "Main Weapon piece 2 collected!"
     },
     "Salt":{
-        "zone": pygame.Rect(700, 350, 70, 80),
+        "zone": pygame.Rect(2322, 105, 45, 45),
         "uses": 3,
         "prompt": "R",
         "collected": False,
@@ -72,7 +75,7 @@ Weapons = {
         "popup_text": "Salt = Sprinkle across the doorway or drop a salt line to block the ghost temporarily. 3 uses"
     },
     "KitchenKnife":{
-        "zone": pygame.Rect(100, 400, 50, 50),
+        "zone": pygame.Rect(1910, 328, 50, 50),
         "prompt": "R",
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "KitchenKnife.png")).convert_alpha(), (70,70)),
@@ -94,6 +97,10 @@ Weapons = {
         "popup_text": "Full weapon unlocked! Use it to kill the ghost!"
     }
 }
+
+Weapons = {}
+Weapons.update(L1Weapons)
+Weapons.update(L2Weapons)
 
 def show_prompt(screen, font, player_rect, weapon, camera_x=0, camera_y=0):
     if weapon["zone"] is not None and not weapon["collected"] and player_rect.colliderect(weapon["zone"]):

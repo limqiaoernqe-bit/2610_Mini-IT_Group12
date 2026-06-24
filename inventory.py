@@ -52,8 +52,9 @@ class Inventory:
             print(f"You don't have {item} in your inventory.")
 
 
+game_inventory = Inventory()
 
-# Level 2 keys
+
 JANITOR_KEY = "janitor_key"
 ROOM_210_KEY = "room_210_key"
 ROOM_206_KEY = "room_206_key"
@@ -69,4 +70,3 @@ EXIT_DOOR_KEY = "exit_door_key"
 # Tools
 LOCK_CUTTER = "lock_cutter"
 SCREWDRIVER = "screwdriver"
-

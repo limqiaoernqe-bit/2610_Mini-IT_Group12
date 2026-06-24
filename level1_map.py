@@ -2,20 +2,50 @@ import pygame
 import pytmx
 import subprocess
 
+from inventory import game_inventory as inventory
 from ghost import Ghost
 from receptionist import Receptionist
 from weapon import barricade
 from player import Player
 from door import Door
 from room_navigation import RoomTrigger
-from inventory import (
-    SECURITY_BADGE,
-    ROOM116_KEY,
-    ROOM117_KEY,
-    ROOM116_117_CODE,
-    EXIT_DOOR_KEY,
-    Inventory
-)
+from weapon import L1Weapons, Weapons, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound, active_traps
+from inventory_bar import draw_inventory, handle_inventory_click
+from object_interaction import ObjectInteraction
+object_interaction = ObjectInteraction()
+
+# Weapon Popup system
+weapon_popup = False
+popup_start_time = 0
+popup_duration = 1
+popup_message = ""
+main_weapon_unlocked = False
+main_weapon_popup_shown = False
+
+def draw_text(surface, text, rect, font, color):
+    words = text.split(" ")
+    lines = []
+    line = ""
+    for word in words:
+        test_line = line + word + " "
+        if font.size(test_line)[0] < rect.width - 40:
+            line = test_line
+        else:
+            lines.append(line)
+            line = word + " "
+    lines.append(line)
+
+
+    line_height = font.size("Tg")[1]
+    total_height =len(lines) * line_height
+    y = rect.y + (rect.height - total_height) // 2
+
+
+    for line in lines:
+        text_surface = font.render(line, True, color)
+        text_rect = text_surface.get_rect(centerx=rect.centerx, y=y)
+        surface.blit(text_surface, text_rect)
+        y += line_height
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -108,9 +138,6 @@ enemies = [
 # Spawn position
 player.x = 1776
 player.y = 2784
-
-
-inventory = Inventory()
 
 # Level 1 Door Objects
 security_door = Door(
@@ -297,7 +324,65 @@ while running:
                     pygame.quit()
                     subprocess.run(["python", "level2_map.py.py", "stairs"])
                     running = False
+                
+                    object_interaction.try_interact(player_rect)
+
+
     
+          # to find coordinates
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            world_x = event.pos[0] + camera_x
+            world_y = event.pos[1] + camera_y
+            print(f"World Coordinates: ({world_x}, {world_y})") 
+            
+            mouse_x, mouse_y = event.pos
+            for i, weapon_name in enumerate(inventory.items):
+                rect = pygame.Rect(50 + i*60, SCREEN_HEIGHT-60, 50, 50)
+                if rect.collidepoint(mouse_x, mouse_y):
+                   selected_index = i
+        
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            handle_inventory_click(event.pos, player, inventory, SCREEN_HEIGHT)
+
+        if event.type == pygame.KEYDOWN:
+
+        # Collect Weapons
+           if event.key == pygame.K_r:
+              for name, weapon in L1Weapons.items():
+                if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
+                    weapon["collected"] = True
+                    Weapons[name]["collected"] = True
+                    unlock_sound.play()
+                    inventory.add_item(name)
+
+                    if pieces_collected() == 3 and not main_weapon_unlocked:
+                        main_weapon_unlocked = True
+                        Weapons["MWfull"]["collected"] = True
+                        inventory.remove_item("MWpiece1")
+                        inventory.remove_item("MWpiece2")
+                        inventory.remove_item("MWpiece3")
+                        inventory.add_item("MWfull")
+                        main_weapon_popup_shown = True
+                        popup_start_time = pygame.time.get_ticks()
+                        mw_sound.play()
+                    else:
+                        weapon_popup = True
+                        popup_start_time = pygame.time.get_ticks()
+                        popup_message = weapon["popup_text"]
+
+                        # Use currectly selected weapons
+           if event.key == pygame.K_w:
+                if event.key == pygame.K_w and player.held_weapon:
+                    use_weapon(
+                        player.held_weapon,
+                        player,
+                        player_rect,
+                        enemies,
+                        player.direction,
+                        inventory
+                    )                        
+
+
     # Player Movement
     keys = pygame.key.get_pressed()
 
@@ -361,6 +446,55 @@ while running:
 
     # Draw player 
     player.draw(screen, camera_x, camera_y)
+
+# WEAPON PART
+    # hide popup
+    if weapon_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 1000):
+        weapon_popup = False
+
+        # Effect when main weapon shows
+    if weapon_popup or (main_weapon_unlocked and main_weapon_popup_shown):
+        dark_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        dark_overlay.set_alpha(180) # darkens the bg and makes the weapon stands out 
+        dark_overlay.fill((0,0,0))
+        screen.blit(dark_overlay, (0,0))
+
+        # popup box
+    if weapon_popup:
+        popup_width = 400
+        popup_height = 200
+        popup_x =(SCREEN_WIDTH - popup_width) //2 
+        popup_y = (SCREEN_HEIGHT - popup_height) //2
+        popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
+
+            #draw popup box
+        pygame.draw.rect(screen, (255,255,255), popup_rect)
+        pygame.draw.rect(screen, (153, 204, 255), popup_rect, 2)
+        draw_text(screen, popup_message, popup_rect, font, (0,0,0))
+
+    if main_weapon_unlocked and main_weapon_popup_shown:
+        MWimage = Weapons["MWfull"]["image"]
+        MW_rect = MWimage.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+        screen.blit(MWimage, MW_rect)
+
+        if pygame.time.get_ticks() - popup_start_time > 1000:
+            main_weapon_popup_shown = False
+            weapon_popup = True
+            popup_start_time = pygame.time.get_ticks()
+            popup_message = Weapons["MWfull"]["popup_text"]
+
+    # Draw image of weapons
+    for name, weapon in L1Weapons.items():
+        if weapon["zone"] is not None and not weapon["collected"]:
+            screen.blit(weapon["image"],( weapon["zone"].x - camera_x, weapon["zone"].y - camera_y))
+        show_prompt(screen, font, player_rect, weapon, camera_x, camera_y)
+
+    # draw use weapon
+    draw_traps(screen, camera_x, camera_y)
+    draw_salt(screen, camera_x, camera_y)
+
+        # draw inventory
+    draw_inventory(screen, inventory, Weapons, object_interaction, SCREEN_HEIGHT, SCREEN_WIDTH)
 
     # Show R interaction prompt above stairs
     if stairs_to_level2.check_collision(player_rect):
@@ -476,6 +610,8 @@ while running:
             )
             
             screen.blit(text_surface, (20, 20))
+
+    object_interaction.draw(screen)
 
     pygame.display.flip()
 
