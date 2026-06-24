@@ -1,4 +1,5 @@
 import pygame
+from weapon import active_traps
 
 SCALE_SIZE = (140, 140)
 
@@ -74,12 +75,10 @@ class Receptionist:
             self.current_frames = new_frames
             self.frame = 0  
 
-    def update(self, player_x, player_y, barricade):
+    def update(self, player_x, player_y, walls, barricade):
 
         if self.defeat:
             return
-         
-        next_x, next_y = self.x, self.y 
 
         if self.state == "stunned":
             if pygame.time.get_ticks() - self.stun_timer > 10000: 
@@ -89,6 +88,14 @@ class Receptionist:
         if self.state == "chasing":
            dx = player_x - self.x
            dy = player_y - self.y
+
+        # Receptionist collision hitbox
+        receptionist_rect = pygame.Rect(
+            self.x - 20,
+            self.y - 40,
+            40,
+            40
+        )
 
         # stop near player
         if abs(dx) < self.stop_distance and abs(dy) < self.stop_distance:
@@ -100,45 +107,79 @@ class Receptionist:
 
         # EXACT SAME STYLE AS YOUR JANITOR (no diagonal movement)
 
+        # Movement values used for collision checking
+        move_x = 0
+        move_y = 0
+
+        # Receptionist chases player
+        # Prioritises vertical movement before horizontal movement
         if dy < 0:
-            self.y -= self.speed
+            move_y = -self.speed
             self.direction = "back"
             self.set_frames(self.walk_back)
 
         elif dy > 0:
-            self.y += self.speed
+            move_y = self.speed
             self.direction = "front"
             self.set_frames(self.walk_front)
 
         else:
             if dx > 0:
-                self.x += self.speed
+                move_x = self.speed
                 self.direction = "right"
                 self.set_frames(self.walk_right)
 
             elif dx < 0:
-                self.x -= self.speed
+                move_x = -self.speed
                 self.direction = "left"
                 self.set_frames(self.walk_left)
 
-            # for  board to barricade
-            future_rect = self.image.get_rect(midbottom=(next_x, next_y))
-            for b in barricade:
-                if future_rect.colliderect(b):
-                    return
+        # Horizontal wall collision
+        test_rect = receptionist_rect.copy()
+        test_rect.x += move_x
+        
+        blocked = False
+        
+        for wall in walls:
+            if test_rect.colliderect(wall):
+                blocked = True
+                break
+
+        # Move receptionist only if path not blocked
+        if not blocked:
+            self.x += move_x
+
+        # Vertical wall collision 
+        test_rect = receptionist_rect.copy()
+        test_rect.y += move_y
+
+        blocked = False
+
+        for wall in walls:
+            if test_rect.colliderect(wall):
+                blocked = True
+                break
+
+        # Move receptionist only if path not blocked
+        if not blocked:
+            self.y += move_y
                 
-        self.x, self.y = next_x, next_y
         self.image = self.animate()
 
-# check for trap collisions
+        # check for trap collisions
         for trap in active_traps[:]:
             if self.image.get_rect(center=(self.x, self.y)).colliderect(trap["rect"]):
                 self.weapon_effect("BananaPeel")
                 active_traps.remove(trap)
 
  
-    def draw(self, screen):
-        rect = self.image.get_rect(midbottom=(self.x, self.y))
+    def draw(self, screen, camera_x = 0, camera_y = 0):
+        rect = self.image.get_rect(
+            midbottom=(
+                self.x - camera_x, 
+                self.y - camera_y
+            )
+        )
         screen.blit(self.image, rect)
 
     def weapon_effect(self, effect):

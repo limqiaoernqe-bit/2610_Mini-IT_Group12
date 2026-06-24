@@ -1,5 +1,7 @@
 import pygame
 
+from weapon import salt_line
+
 SCALE_SIZE = (200, 200)
 
 class Ghost:
@@ -45,29 +47,33 @@ class Ghost:
             dx /= length
             dy /= length
 
-            self.x += dx * self.speed
-            self.y += dy * self.speed
+            next_x = self.x + dx * self.speed
+            next_y = self.y + dy * self.speed
 
         # face left/right only
         if dx > 0:
             self.image = self.image_right
         else:
             self.image = self.image_left
-        
-        next_x = self.x + dx * self.speed
-        next_y = self.y + dy * self.speed
 
+        # Check salt collision    
         future_rect = self.image.get_rect(midbottom=(next_x, next_y))
-        for salt in salt_lines:
+        for salt in salt_line:
             if future_rect.colliderect(salt["rect"]):
                 return 
-            
+
+        # Move ghost   
         self.x = next_x
         self.y = next_y
 
 
-    def draw(self, screen):
-        rect = self.image.get_rect(center=(self.x, self.y))
+    def draw(self, screen, camera_x = 0, camera_y = 0):
+        rect = self.image.get_rect(
+            center=(
+                self.x - camera_x, 
+                self.y - camera_y
+            )
+        )
         screen.blit(self.image, rect)
 
     def weapon_effect(self, effect):

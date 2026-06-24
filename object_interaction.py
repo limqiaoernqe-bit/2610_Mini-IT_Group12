@@ -31,10 +31,14 @@ class ObjectInteraction:
         # ITEM MAPPING
         # =========================
         self.items = {
-            "box": "210key"
-            "toolbox": "toolbox", "bolt_cutter", "screwdriver"
-            "flashlight": "flashlight"
-            "stool": "janitorkey" 
+            "box": "210key",
+            "toolbox": [
+                "toolbox", 
+                "bolt_cutter", 
+                "screwdriver"
+            ],
+            "flashlight": "flashlight",
+            "stool": "janitorkey" ,
             "locker": "badge" #level2
         }
 
@@ -45,8 +49,6 @@ class ObjectInteraction:
             "bolt_cutter": self.load("assets/bolt_cutter.png"),
             "toolbox": self.load("assets/toolbox.png"),
             "flashlight": self.load("assets/flashlight.png"),
-            "map_fragment": self.load("assets/map_fragment.png"),
-            "map": self.load("assets/map.png"),
             "screwdriver": self.load("assets/screwdriver.png"),
             "210key": self.load("assets/210key.png"),
             "116key": self.load("assets/116key.png"),

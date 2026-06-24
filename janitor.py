@@ -7,6 +7,7 @@ class Janitor:
         self.x = x
         self.y = y
         self.speed = 1
+        self.defeat = False
 
         self.frame = 0
         self.anim_speed = 0.12
