@@ -19,6 +19,8 @@ from weapon import Weapons, inventory, use_weapon, show_prompt, draw_traps, plac
 from inventory_bar import draw_inventory, handle_inventory_click 
 from janitor import Janitor
 from object_interaction import ObjectInteraction
+from scenes.hotelscene2 import on_chloe_saved, on_jay_saved, scene_manager
+
 
 # Weapon Popup system
 weapon_popup = False
@@ -53,17 +55,24 @@ def draw_text(surface, text, rect, font, color):
         surface.blit(text_surface, text_rect)
         y += line_height
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+screen_width = 1280
+screen_height = 720
 
 pygame.init()
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Camera Test")
 
 clock = pygame.time.Clock()
 
 font = pygame.font.Font(None, 36)
+
+# Preload portraits for dialogues
+image_dict = {
+    "chloe_front.png": pygame.image.load("assets/chloe_front_detailed.png"),
+    "jay_front.png": pygame.image.load("assets/jay_front_detailed.png"),
+    # add others as needed
+}
 
 # Load Map
 tmx_data = pytmx.load_pygame("level2_map.tmx")
@@ -390,6 +399,9 @@ while running:
             if event.key == pygame.K_c and active_puzzle and active_puzzle["active"]:
                 active_puzzle["active"] = False
 
+            if event.key == pygame.K_SPACE:
+                scene_manager.update()
+
         # to find coordinates
         if event.type == pygame.MOUSEBUTTONDOWN:
             world_x = event.pos[0] + camera_x
@@ -397,8 +409,7 @@ while running:
             print(f"World Coordinates: ({world_x}, {world_y})")
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            handle_inventory_click(event.pos, player, inventory, SCREEN_HEIGHT)
-
+            handle_inventory_click(event.pos, player, inventory, screen_height)
         # puzzle 
         if active_puzzle and active_puzzle["active"]:
             handle_puzzle_input(event, active_puzzle, inventory)
@@ -479,8 +490,8 @@ while running:
         stairs_trigger.locked = False
 
     # Camera System
-    camera_x = player.x - SCREEN_WIDTH // 2
-    camera_y = player.y - SCREEN_HEIGHT // 2
+    camera_x = player.x - screen_width // 2
+    camera_y = player.y - screen_height // 2
 
     # Draw everything
     screen.fill((0, 0, 0))
@@ -501,7 +512,7 @@ while running:
 
         # Effect when main weapon shows
     if weapon_popup or (main_weapon_unlocked and main_weapon_popup_shown):
-        dark_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        dark_overlay = pygame.Surface((screen_width, screen_height))
         dark_overlay.set_alpha(180) # darkens the bg and makes the weapon stands out 
         dark_overlay.fill((0,0,0))
         screen.blit(dark_overlay, (0,0))
@@ -510,8 +521,8 @@ while running:
     if weapon_popup:
         popup_width = 400
         popup_height = 200
-        popup_x =(SCREEN_WIDTH - popup_width) //2 
-        popup_y = (SCREEN_HEIGHT - popup_height) //2
+        popup_x =(screen_width - popup_width) //2 
+        popup_y = (screen_height - popup_height) //2
         popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
 
             #draw popup box
@@ -521,7 +532,7 @@ while running:
 
     if main_weapon_unlocked and main_weapon_popup_shown:
         MWimage = Weapons["MWfull"]["image"]
-        MW_rect = MWimage.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+        MW_rect = MWimage.get_rect(center=(screen_width//2, screen_height//2))
         screen.blit(MWimage, MW_rect)
 
         if pygame.time.get_ticks() - popup_start_time > 1000:
@@ -547,7 +558,7 @@ while running:
          pygame.Rect(zone.x - camera_x, zone.y - camera_y, zone.width, zone.height), 2)
     
         # draw inventory
-    draw_inventory(screen, inventory, Weapons, SCREEN_HEIGHT, SCREEN_WIDTH)
+    draw_inventory(screen, inventory, Weapons, screen_height, screen_width)
     
     for clue in Clue.values():
         czone = clue["zone"]
@@ -569,34 +580,35 @@ while running:
 
             screen.blit(text, text_rect)
 
-    # Press E to unlock Room 210
+    # Press E to unlock Room 210 (Jay's room)
     if room_210.check_collision(player_rect):
-        
-        if keys[pygame.K_e]:
+        if keys[pygame.K_e]and room210_door.is_locked():
             inventory.use_item(
                 ROOM_210_KEY,
                 room210_door
             )
+            # Trigger Jay's cutscene
+            on_jay_saved()
 
     # Press E to unlock Janitor Room
     if janitor_room.check_collision(player_rect):
         
         if keys[pygame.K_e]:
-            
             inventory.use_item(
                 JANITOR_KEY,
                 janitor_door
             )
     
-    # Press E to unlock Room 206
+    # Press E to unlock Room 206 (Chloe's room)
     if room_206.check_collision(player_rect):
         
-        if keys[pygame.K_e]:
-            
+        if keys[pygame.K_e] and room206_door.is_locked():
             inventory.use_item(
                 ROOM_206_KEY,
                 room206_door
             )
+            # Trigger Chloe's cutscene
+            on_chloe_saved()
 
     # Sync trigger status with door status
     room_210.locked = room210_door.is_locked()
@@ -665,6 +677,9 @@ while running:
             screen.blit(text_surface, (20, 20))
 
     object_interaction.draw(screen)
+
+    # Draw dialogue cutscenes if active
+    scene_manager.draw(screen, font, image_dict)
 
     pygame.display.flip()
 
