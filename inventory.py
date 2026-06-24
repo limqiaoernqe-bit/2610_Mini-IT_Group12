@@ -55,16 +55,16 @@ class Inventory:
 game_inventory = Inventory()
 
 
-JANITOR_KEY = "janitor_key"
-ROOM_210_KEY = "room_210_key"
-ROOM_206_KEY = "room_206_key"
+JANITOR_KEY = "JANITOR_KEY"
+ROOM_210_KEY = "ROOM_210_KEY"
+ROOM_206_KEY = "ROOM_206_KEY"
 
 # Level 1 keys 
-SECURITY_BADGE = "security_badge"
-ROOM116_KEY = "room116_key"
-ROOM117_KEY = "room117_key"
-ROOM116_117_CODE = "room116_117_code"
-EXIT_DOOR_KEY = "exit_door_key"
+SECURITY_BADGE = "SECURITY_BADGE"
+ROOM116_KEY = "ROOM116_KEY"
+ROOM117_KEY = "ROOM117_KEY"
+ROOM116_117_CODE = "ROOM116_117_CODE"
+EXIT_DOOR_KEY = "EXIT_DOOR_KEY"
 
 
 # Tools

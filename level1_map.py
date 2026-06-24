@@ -2,7 +2,7 @@ import pygame
 import pytmx
 import subprocess
 
-from inventory import game_inventory as inventory
+from inventory import game_inventory as inventory, SECURITY_BADGE, ROOM116_KEY, ROOM117_KEY, ROOM116_117_CODE, EXIT_DOOR_KEY
 from ghost import Ghost
 from receptionist import Receptionist
 from weapon import barricade
@@ -13,6 +13,18 @@ from weapon import L1Weapons, Weapons, use_weapon, show_prompt, draw_traps, plac
 from inventory_bar import draw_inventory, handle_inventory_click
 from object_interaction import ObjectInteraction
 object_interaction = ObjectInteraction()
+import json
+try:
+    with open("save_inventory.json", "r") as f:
+        save_data = json.load(f)
+        for item in save_data.get("items", []):
+            inventory.add_item(item)
+
+        for name,uses in save_data.get("uses", {}).items():
+            if name in Weapons and uses is not None:
+                Weapons[name]["uses"] = uses
+except FileNotFoundError:
+    pass
 
 # Weapon Popup system
 weapon_popup = False
@@ -339,12 +351,12 @@ while running:
             
             mouse_x, mouse_y = event.pos
             for i, weapon_name in enumerate(inventory.items):
-                rect = pygame.Rect(50 + i*60, SCREEN_HEIGHT-60, 50, 50)
+                rect = pygame.Rect(50 + i*60, screen_height-60, 50, 50)
                 if rect.collidepoint(mouse_x, mouse_y):
                    selected_index = i
         
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            handle_inventory_click(event.pos, player, inventory, SCREEN_HEIGHT)
+            handle_inventory_click(event.pos, player, inventory, screen_height)
 
         if event.type == pygame.KEYDOWN:
 
@@ -456,7 +468,7 @@ while running:
 
         # Effect when main weapon shows
     if weapon_popup or (main_weapon_unlocked and main_weapon_popup_shown):
-        dark_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        dark_overlay = pygame.Surface((screen_width, screen_height))
         dark_overlay.set_alpha(180) # darkens the bg and makes the weapon stands out 
         dark_overlay.fill((0,0,0))
         screen.blit(dark_overlay, (0,0))
@@ -465,8 +477,8 @@ while running:
     if weapon_popup:
         popup_width = 400
         popup_height = 200
-        popup_x =(SCREEN_WIDTH - popup_width) //2 
-        popup_y = (SCREEN_HEIGHT - popup_height) //2
+        popup_x =(screen_width - popup_width) //2 
+        popup_y = (screen_height - popup_height) //2
         popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
 
             #draw popup box
@@ -476,7 +488,7 @@ while running:
 
     if main_weapon_unlocked and main_weapon_popup_shown:
         MWimage = Weapons["MWfull"]["image"]
-        MW_rect = MWimage.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+        MW_rect = MWimage.get_rect(center=(screen_width//2, screen_height//2))
         screen.blit(MWimage, MW_rect)
 
         if pygame.time.get_ticks() - popup_start_time > 1000:
@@ -496,7 +508,7 @@ while running:
     draw_salt(screen, camera_x, camera_y)
 
         # draw inventory
-    draw_inventory(screen, inventory, Weapons, object_interaction, SCREEN_HEIGHT, SCREEN_WIDTH)
+    draw_inventory(screen, inventory, Weapons, object_interaction, screen_width, screen_height)
 
     # Show R interaction prompt above stairs
     if stairs_to_level2.check_collision(player_rect):

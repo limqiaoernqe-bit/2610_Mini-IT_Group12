@@ -1,5 +1,6 @@
 import pygame
 from inventory import game_inventory as inventory
+from inventory import JANITOR_KEY, ROOM_210_KEY, SECURITY_BADGE, ROOM_206_KEY
 
 class ObjectInteraction:
     def __init__(self):
@@ -7,6 +8,8 @@ class ObjectInteraction:
         self.font = pygame.font.SysFont("arial",32) 
         self.visible = False
         self.current_item = None
+        self.popup_start_time = 0
+        self.popup_duration = 5000
 
         # =========================
         # INTERACTION ZONES (TEMP)
@@ -34,15 +37,15 @@ class ObjectInteraction:
         # ITEM MAPPING
         # =========================
         self.items = {
-            "box": "210key",
+            "box": ROOM_210_KEY,
             "toolbox": [
                 "toolbox", 
                 "bolt_cutter", 
                 "screwdriver"
             ],
             "flashlight": "flashlight",
-            "stool": "janitorkey" ,
-            "locker": "badge" #level2
+            "stool": JANITOR_KEY ,
+            "locker": SECURITY_BADGE #level2
         }
 
         # =========================
@@ -53,19 +56,15 @@ class ObjectInteraction:
             "toolbox": self.load("assets/toolbox.png"),
             "flashlight": self.load("assets/flashlight.png"),
             "screwdriver": self.load("assets/screwdriver.png"),
-            "210key": self.load("assets/210key.png"),
+            ROOM_210_KEY: self.load("assets/210key.png"),
             "116key": self.load("assets/116key.png"),
-            "janitorkey": self.load("assets/janitorkey.png"),
-            "badge": self.load("assets/badge.png"),
-            "room_206_key": self.load("assets/206key.png")
+            JANITOR_KEY: self.load("assets/janitorkey.png"),
+            SECURITY_BADGE: self.load("assets/badge.png"),
+            ROOM_206_KEY: self.load("assets/206key.png")
         }
 
         self.visible = False
         self.current_item = None
-    def draw(self, screen):
-        if not self.font:
-           self.font = pygame.font.SysFont("arial", 32)
-
     # -------------------------
     # LOAD IMAGE
     # -------------------------
@@ -92,6 +91,7 @@ class ObjectInteraction:
     def trigger(self, item_name):
         self.visible = True
         self.current_item = item_name
+        self.popup_start_time = pygame.time.get_ticks()
 
         # add item into inventory
         if isinstance(item_name, list):
@@ -110,6 +110,10 @@ class ObjectInteraction:
     # -------------------------
     def draw(self, screen):
         if not self.visible:
+            return
+        
+        if pygame.time.get_ticks() - self.popup_start_time > self.popup_duration:
+            self.hide()
             return
 
         overlay = pygame.Surface(screen.get_size())

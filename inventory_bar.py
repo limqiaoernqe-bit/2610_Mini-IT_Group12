@@ -2,7 +2,7 @@ import pygame
 
 selected_index = 0 
 
-def draw_inventory(screen, inventory, Weapons, object_interaction, screen_height, screen_width):
+def draw_inventory(screen, inventory, Weapons, object_interaction, screen_width, screen_height ):
 
     bar_rect = pygame.Rect(10, screen_height - 70, screen_width - 20,60)
     pygame.draw.rect(screen, (253,253,253), bar_rect)
@@ -23,9 +23,9 @@ def draw_inventory(screen, inventory, Weapons, object_interaction, screen_height
         screen.blit(img, rect)
 
         # show uses if weapon has them 
-        if Weapons and "uses" in Weapons:
+        if item_name in Weapons and "uses" in Weapons[item_name]:
             font = pygame.font.Font(None, 24)
-            text = font.render(str(Weapons["uses"]), True, (255,255,255))
+            text = font.render(str(Weapons[item_name]["uses"]), True, (255,255,255))
             screen.blit(text, (x_offset, y_offset + 50))
 
         # Yellow box to show which item is selected
@@ -40,9 +40,9 @@ def handle_inventory_click(mouse_pos, player, inventory, screen_height):
     x_offset = 20
     y_offset = screen_height - 110
 
-    for i, weapon_name in enumerate(inventory.items):
+    for i, item_name in enumerate(inventory.items):
         rect = pygame.Rect(x_offset, y_offset, 90, 90)
         if rect.collidepoint(mouse_pos):
             selected_index = i
-            player.held_weapon = weapon_name
+            player.held_weapon = item_name
         x_offset += 100

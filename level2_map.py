@@ -373,10 +373,20 @@ while running:
                     if not stairs_trigger.locked:
                         print("Going to Level 1...")
                         # Close level 2 and open level 1
-                        pygame.quit()
 
-                        subprocess.run(["python", "level1_map.py"])
+                        # save inventory before quitting
+                        import json
+
+                        save_data = {
+                            "items": inventory.items,
+                            "uses": {name: Weapons[name].get("uses", None) for name in inventory.items if name in Weapons}
+                        }
+                        with open("save_inventory.json", "w") as f:
+                            json.dump(save_data, f)
                         running = False
+                        pygame.quit()
+                        subprocess.run(["python", "level1_map.py"])
+                        break
                     else:
                         print("The stairs are locked. Find a way to unlock them.")
 
@@ -404,7 +414,7 @@ while running:
 
             mouse_x, mouse_y = event.pos
             for i, weapon_name in enumerate(inventory.items):
-                rect = pygame.Rect(50 + i*60, SCREEN_HEIGHT-60, 50, 50)
+                rect = pygame.Rect(50 + i*60, screen_height-60, 50, 50)
                 if rect.collidepoint(mouse_x, mouse_y):
                    selected_index = i
 
@@ -560,7 +570,7 @@ while running:
          pygame.Rect(zone.x - camera_x, zone.y - camera_y, zone.width, zone.height), 2)
     
         # draw inventory
-    draw_inventory(screen, inventory, Weapons, object_interaction, SCREEN_HEIGHT, SCREEN_WIDTH)
+    draw_inventory(screen, inventory, Weapons, object_interaction, screen_width, screen_height)
     
     for clue in Clue.values():
         czone = clue["zone"]

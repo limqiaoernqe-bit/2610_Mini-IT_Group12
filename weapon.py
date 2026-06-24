@@ -40,7 +40,7 @@ L2Weapons = {
         "image_used": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeelUse.png")).convert_alpha(), (75,75)),
     },
     "CleaningSpray": {
-        "zone": pygame.Rect(3109, 2229, 90, 90),
+        "zone": pygame.Rect(3556, 2227, 90, 90),
         "uses": 3,
         "prompt": "R",
         "collected": False,
