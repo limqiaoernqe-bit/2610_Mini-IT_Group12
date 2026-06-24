@@ -18,6 +18,7 @@ from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show
 from weapon import Weapons, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound, active_traps
 from inventory_bar import draw_inventory, handle_inventory_click 
 from janitor import Janitor
+from object_interaction import ObjectInteraction
 
 # Weapon Popup system
 weapon_popup = False
@@ -125,11 +126,9 @@ janitor = Janitor(
     1056
 )
 
-enemies = [janitor]
+object_interaction = ObjectInteraction()
 
-# Spawn position
-player.x = 2160
-player.y = 2160
+enemies = [janitor]
 
 inventory = Inventory()
 
@@ -232,6 +231,27 @@ stairs_trigger = RoomTrigger(
     "Stairs", 
     locked = False
 )
+
+# Spawn position logic
+
+# Default when first playing
+spawn_mode = "maintenance"
+
+# Coming back from level 1
+try:
+    import sys
+    if len (sys.argv) > 1:
+        spawn_mode = sys.argv[1]
+except:
+    pass
+
+if spawn_mode == "maintenance":
+    player.x = 2160
+    player.y = 2160
+elif spawn_mode == "stairs":
+    # Place the player right at the stairs trigger
+    player.x = 2589
+    player.y = 2765
 
 # Static item hitboxes (keys placed at fixed map coordinates)
 room210_key_rect = pygame.Rect(
@@ -357,6 +377,15 @@ while running:
                     else:
                         print("The stairs are locked. Find a way to unlock them.")
 
+                # Object interaction
+                else: 
+                    object_interaction.try_interact(
+                        player_rect
+                    )
+                
+            if event.key == pygame.K_ESCAPE:
+                object_interaction.hide()
+
             # close puzzle when press C
             if event.key == pygame.K_c and active_puzzle and active_puzzle["active"]:
                 active_puzzle["active"] = False
@@ -415,7 +444,7 @@ while running:
                         popup_start_time = pygame.time.get_ticks()
                         popup_message = weapon["popup_text"]
 
-                        # Use currectly selected eapons
+                        # Use currectly selected weapons
             if event.key == pygame.K_w:
                 if event.key == pygame.K_w and player.held_weapon:
                     use_weapon(
@@ -450,7 +479,6 @@ while running:
     janitor.update(
         player.x, 
         player.y,
-        active_walls
     )
 
     # Unlock stairs when janitor is defeated
@@ -641,6 +669,8 @@ while running:
             )
 
             screen.blit(text_surface, (20, 20))
+
+    object_interaction.draw(screen)
 
     pygame.display.flip()
 

@@ -1,5 +1,4 @@
 import pygame
-from weapon import active_traps
 
 SCALE_SIZE = (150, 150)
 from weapon import active_traps
@@ -37,8 +36,7 @@ class Janitor:
         self.front_sheet = pygame.image.load("assets/janitor_walk_front.png").convert_alpha()
         self.back_sheet = pygame.image.load("assets/janitor_walk_back.png").convert_alpha()
 
-        # ✅ FIXED SIZES
-        # left/right = 2x2 (4 frames total)
+       
         self.walk_left = self.load_sheet(self.left_sheet, 2, 2)
         self.walk_right = self.load_sheet(self.right_sheet, 2, 2)
 
@@ -51,6 +49,8 @@ class Janitor:
         self.current_frames = self.walk_front
 
         self.stop_distance = 40
+
+        self.rect = self.image.get_rect(midbottom=(self.x, self.y))
 
   
     def load_sheet(self, sheet, rows, cols):
@@ -112,14 +112,6 @@ class Janitor:
         dx = player_x - self.x
         dy = player_y - self.y
 
-        # Janitor collision
-        janitor_rect = pygame.Rect(
-            self.x - 20,
-            self.y - 40,
-            40,
-            40
-        )
-
         # stop distance check (unchanged)
         if abs(dx) < self.stop_distance and abs(dy) < self.stop_distance:
             if self.direction == "back":
@@ -130,82 +122,47 @@ class Janitor:
 
         # movement + animation logic (FIXED DIAGONAL ISSUE)
 
-        # Movement values used for collision checking
         move_x = 0
         move_y = 0
-    
-        # Janitor follows the player by moving in the direction
-        # with the biggest distance first
 
-        if abs(dx) > abs(dy):
-            # Move horizontally if player is further left/right
-            if dx > 0:
-                move_x = self.speed
-                self.direction = "right"
-                self.set_frames(self.walk_right)
+        if dy < 0:
+            self.direction = "back"
+            self.set_frames(self.walk_back)
+        elif dy > 0:
+            self.direction = "front"
+            self.set_frames(self.walk_front)
+        elif dx > 0:
+            self.direction = "right"
+            self.set_frames(self.walk_right)
+        elif dx < 0:
+            self.direction = "left"
+            self.set_frames(self.walk_left)
 
-            else:
-                move_x = -self.speed
-                self.direction = "left"
-                self.set_frames(self.walk_left)
-            
-        else:
-            # Move vertically if player is further up/down
-            if dy > 0:
-                move_y = self.speed
-                self.direction = "front"
-                self.set_frames(self.walk_front)
+        if dx < 0:
+            move_x = -self.speed
+        elif dx > 0:
+            move_x = self.speed
 
-            else:
-                move_y = -self.speed
-                self.direction = "back"
-                self.set_frames(self.walk_back)
-                
-        # Horizontal wall collision
-        janitor_rect.x += move_x
+        if dy < 0:
+            move_y = -self.speed
+        elif dy > 0:
+            move_y = self.speed
 
-        blocked = False
+        janitor_rect = self.rect.copy()
 
-        for wall in walls:
-            if janitor_rect.colliderect(wall):
-                blocked = True 
-                break
-        
-        # Move janitor only if path not blocked
-        if not blocked:
-            self.x += move_x
+        if move_x != 0:
+            janitor_rect.x += move_x
+            blocked = any(janitor_rect.colliderect(wall) for wall in walls)
+            if not blocked:
+                self.x += move_x
 
-        # If blocked horizontally, try going vertically
-        else:
-            # Try moving around obstacle
-            if dy > 0:
-                self.y += self.speed
+        janitor_rect = self.rect.copy()
 
-            elif dy < 0:
-                self.y -= self.speed        
-
-        # Vertical wall collision
-        janitor_rect.y += move_y
-
-        blocked = False
-
-        for wall in walls:
-            if janitor_rect.colliderect(wall):
-                blocked = True
-                break
-        
-        # Move janitor only if path not blocked
-        if not blocked:
-            self.y += move_y
-
-        # If blocked vertically, try going horizontally
-        else:
-            # Try moving around obstacle
-            if dx > 0:
-                self.x += self.speed
-
-            elif dx < 0:
-                self.y -= self.speed
+        if move_y != 0:
+            janitor_rect.y += move_y
+            blocked = any(janitor_rect.colliderect(wall) for wall in walls)
+            if not blocked:
+                self.y += move_y
 
         # apply animation frame
         self.image = self.animate()
@@ -218,12 +175,14 @@ class Janitor:
                 active_traps.remove(trap)
 
     def draw(self, screen, camera_x=0, camera_y=0):
+
         rect = self.image.get_rect(
             midbottom=(
                 self.x - camera_x,
                 self.y - camera_y
             )
         )
+
         screen.blit(self.image, rect)
 
     def weapon_effect (self, effect):
