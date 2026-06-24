@@ -67,6 +67,11 @@ class HotelScene1(BaseScene):
         if self.janitor: 
             self.janitor.update( self.player.x, self.player.y )
 
+        if self.dialogue.is_finished() and not self.moving:
+            import subprocess, pygame
+            pygame.quit()
+            subprocess.run(["python", "level2_map.py"])
+
     def move(self):
         if not self.moving:
             return
