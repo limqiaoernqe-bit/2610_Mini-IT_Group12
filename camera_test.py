@@ -15,7 +15,7 @@ from inventory import (
     SECURITY_BADGE
 )
 from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
-from weapon import Weapons, inventory, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound
+from weapon import Weapons, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound, active_traps
 from inventory_bar import draw_inventory, handle_inventory_click 
 from janitor import Janitor
 
@@ -417,13 +417,14 @@ while running:
 
                         # Use currectly selected eapons
             if event.key == pygame.K_w:
-
-                if player.held_weapon is not None:
+                if event.key == pygame.K_w and player.held_weapon:
                     use_weapon(
                         player.held_weapon,
+                        player,
                         player_rect,
                         enemies,
-                        player.direction
+                        player.direction,
+                        inventory
                     )
 
     # Player Movement
@@ -515,8 +516,8 @@ while running:
         show_prompt(screen, font, player_rect, weapon, camera_x, camera_y)
 
     # draw use weapon
-    draw_traps(screen)
-    draw_salt(screen)
+    draw_traps(screen, camera_x, camera_y)
+    draw_salt(screen, camera_x, camera_y)
 
     # outline puzzle zone & clue js to check
     zone = Puzzle["Treadmill"]["zone"]

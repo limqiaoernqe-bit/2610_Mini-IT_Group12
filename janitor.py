@@ -8,13 +8,17 @@ class Janitor:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.speed = 1
+        self.speed = 1.5
+        self.image = pygame.image.load("assets/janitor.png").convert_alpha()
+        self.rect = self.image.get_rect(center=(self.x,self.y))
         self.state = "chasing"
         self.defeat = False
         self.stun_timer = 0
+        self.slip_until = 0
 
         self.frame = 0
         self.anim_speed = 0.12
+        self.rect.center = (self.x, self.y)
 
         # IDLE
         self.idle_front = pygame.transform.scale(
@@ -77,6 +81,7 @@ class Janitor:
             self.frame = 0  
 
     def update(self, player_x, player_y, walls):
+        
         # if defeats the janitor js stops moving
         if self.defeat:
             return 
@@ -86,6 +91,23 @@ class Janitor:
                 self.state = "chasing"
             else:
                 return
+            
+        # if janitor is slipping
+        if self.state == "slipping":
+            now = pygame.time.get_ticks()
+            
+            if now < self.slip_until:
+               self.slip_angle = (self.slip_angle + 10) % 360
+               self.image = pygame.transform.rotate(self.idle_front, self.slip_angle)
+               self.x -= 2
+               self.y -= 1 
+               self.rect.center = (self.x, self.y)
+
+            else:
+               self.image = pygame.transform.rotate(self.idle_front, 90)
+            if now > self.lay_until:
+                self.state = "chasing"
+            return
 
         dx = player_x - self.x
         dy = player_y - self.y
@@ -160,7 +182,7 @@ class Janitor:
                 self.y += self.speed
 
             elif dy < 0:
-                self.y -+ self.speed        
+                self.y -= self.speed        
 
         # Vertical wall collision
         janitor_rect.y += move_y
@@ -187,13 +209,13 @@ class Janitor:
 
         # apply animation frame
         self.image = self.animate()
+        self.rect.center = (self.x, self.y)
 
        # check for trap collisions
         for trap in active_traps[:]:
-            if self.image.get_rect(center=(self.x, self.y)).colliderect(trap["rect"]):
+            if self.state == "chasing" and self.rect.colliderect(trap["rect"]):
                 self.weapon_effect("BananaPeel")
                 active_traps.remove(trap)
-
 
     def draw(self, screen, camera_x=0, camera_y=0):
         rect = self.image.get_rect(
@@ -204,9 +226,12 @@ class Janitor:
         )
         screen.blit(self.image, rect)
 
-    def weapon_effect (self,effect):
-        if effect == "BananaPeel":
-            self.speed = max(1,self.speed -1)
+    def weapon_effect (self, effect):
+        if effect== "BananaPeel":
+            self.state = "slipping"
+            self.slip_until = pygame.time.get_ticks() + 2000
+            self.lay_until = pygame.time.get_ticks() + 40000
+            self.slip_angle = 0
 
         elif effect == "CleaningSpray":
             self.state = "stunned" 

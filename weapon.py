@@ -8,8 +8,6 @@ ASSET_DIR = os.path.join(BASE_DIR, 'assets')
 screen = pygame.display.set_mode((800, 600))
 pygame.mixer.init()
 
-# Inventory
-inventory = []
 active_traps = []
 salt_line = []
 barricade = []
@@ -39,7 +37,7 @@ Weapons = {
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeel.png")).convert_alpha(), (90,90)),
         "popup_text": "Banana Peel = Helps slow down the janitor. 3 use",
-        "image_used": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeelUse.png")).convert_alpha(), (90,90)),
+        "image_used": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeelUse.png")).convert_alpha(), (75,75)),
     },
     "CleaningSpray": {
         "zone": pygame.Rect(3109, 2229, 90, 90),
@@ -112,21 +110,22 @@ def pieces_collected ():
     ])
 
 # weapon use
-def use_weapon(name, player_rect, enemies, player_direction):
+def use_weapon(name, player, player_rect, enemies, player_direction, inventory):
     if "uses" in Weapons[name]:
     # everytime player use it the uses decrease
        Weapons[name]["uses"] -=1
     # if uses reach to 0 then u remove it from the inventory
        if Weapons[name]["uses"] <=0 :
            inventory.remove_item(name)
+           if player.held_weapon == name:
+               player.held_weapon = None
            return
        
     if name == "BananaPeel":
-        slippery_zone = pygame.Rect(player_rect.x+50, player_rect.y, 40, 40)
-        active_traps.append({"rect": slippery_zone, "start": pygame.time.get_ticks()})
-        for enemy in enemies:
-            if enemy.image.get_rect(center=(enemy.x, enemy.y)).colliderect(slippery_zone):
-                enemy.weapon_effect("BananaPeel")
+        slippery_zone = pygame.Rect(player.x, player.y + 40, 40, 40)
+        active_traps.append({
+            "rect": slippery_zone, 
+            })
 
     elif name == "CleaningSpray":
         spray_sound.play()
@@ -147,9 +146,12 @@ def use_weapon(name, player_rect, enemies, player_direction):
                 enemy.weapon_effect("MWfull")
  
 # drawing traps
-def draw_traps(screen):
+def draw_traps(screen, camera_x=0, camera_y=0):
     for trap in active_traps:
-        screen.blit(Weapons["BananaPeel"]["image_used"], trap["rect"].topleft)
+        screen.blit(
+            Weapons["BananaPeel"]["image_used"],
+            (trap["rect"].x - camera_x, trap["rect"].y - camera_y)
+        )
 
 # Salt 
 def place_salt(x,y, direction):
@@ -160,9 +162,15 @@ def place_salt(x,y, direction):
         salt_rect = pygame.Rect(x, y, 10, SALT_LENGTH)
     salt_line.append(salt_rect)
 
-def draw_salt(screen):
+def draw_salt(screen, camera_x=0, camera_y=0):
     for salt in salt_line: 
-        pygame.draw.rect(screen, (255, 255, 255), salt)
-
-
-
+        pygame.draw.rect(
+            screen,
+            (255,255,255),
+            pygame.Rect(
+                salt.x - camera_x,
+                salt.y - camera_y, 
+                salt.width, 
+                salt.height
+            )
+        )
