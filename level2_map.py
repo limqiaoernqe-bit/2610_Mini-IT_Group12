@@ -422,7 +422,7 @@ while running:
             handle_inventory_click(event.pos, player, inventory, screen_height)
         # puzzle 
         if active_puzzle and active_puzzle["active"]:
-            handle_puzzle_input(event, active_puzzle, inventory)
+            handle_puzzle_input(event, active_puzzle, inventory, object_interaction)
 
         # clue
         if event.type == pygame.KEYDOWN:

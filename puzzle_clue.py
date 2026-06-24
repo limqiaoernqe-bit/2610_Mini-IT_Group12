@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import K_BACKSPACE, K_RETURN
 import os
+from inventory import ROOM_206_KEY
 
 BASE_DIR = os.path.dirname(__file__)
 ASSET_DIR = os.path.join(BASE_DIR, 'assets')
@@ -149,7 +150,7 @@ def puzzle_screen(puzzle,screen, font, screen_width=800, screen_height=600):
           end_text_rect.top = box_rect.bottom + 10
           screen.blit(end_text,end_text_rect)
 
-def handle_puzzle_input(event, active_puzzle, inventory):
+def handle_puzzle_input(event, active_puzzle, inventory, object_interaction):
     from inventory import game_inventory as inventory, ROOM_206_KEY
     if event.type == pygame.KEYDOWN:    
                if event.key == K_BACKSPACE:
@@ -159,7 +160,7 @@ def handle_puzzle_input(event, active_puzzle, inventory):
                      active_puzzle["collected"] = True
                      active_puzzle["end_message"] = "Correct! Key to Door 206 is in your inventory."
                      inventory.add_item(ROOM_206_KEY)
-                     object_interaction.trigger("room_206_key")
+                     object_interaction.trigger(ROOM_206_KEY)
                      active_puzzle["correct_start"] = pygame.time.get_ticks()
                   else:
                         active_puzzle["end_message"] = "Wrong answer. Try again!"
