@@ -21,8 +21,8 @@ class HotelScene1(BaseScene):
 
         # PLAYER
         self.player = Player()
-        self.player.x = 1008
-        self.player.y = 1392
+        self.player.x = 1056
+        self.player.y = 1442
 
         # CAMERA
         self.camera_x = 0

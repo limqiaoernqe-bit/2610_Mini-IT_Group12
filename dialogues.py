@@ -69,10 +69,10 @@ JANITOR_DIALOGUE = [
 
     ("COMMAND", "move_path", [
         
-    (1440, 1440), #fix coordinates
-    (1632, 1440),
-    (1632, 1200),
-    (2208, 1200)
+    (1056, 1442), #fix coordinates
+    (1420, 1439),
+    (1625, 1512),
+    (1498, 1910)
 
     ]),
 
@@ -85,9 +85,7 @@ JANITOR_DIALOGUE = [
 
     ("COMMAND", "move_path", [
         
-    (1632, 1200),
-    (1632, 1440),
-    (1440, 1440)
+    (1625, 1512)
 
     ]),
 
@@ -98,7 +96,7 @@ JANITOR_DIALOGUE = [
 
     ("Note",None, "If you want to see them again, find the keys. He's watching. Find the clues before he finds you."),
 
-    ("COMMAND", "spawn_janitor", (1632, 1200)),
+    ("COMMAND", "spawn_janitor", (1700, 1189)),
 
     ("Narrator",None, "Mia looks up and sees the janitor standing at the end of the hallway."),
 
@@ -113,8 +111,7 @@ JANITOR_DIALOGUE = [
 
     ("COMMAND", "move_path", [
         
-    (1632, 1200),
-    (1872, 2064),
+    (1872,2064),
     (2256, 2112)
 
     ]),
