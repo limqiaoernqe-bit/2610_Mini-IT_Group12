@@ -17,19 +17,19 @@ class ObjectInteraction:
         
         self.zones = {
             "box": {
-                "zone": pygame.Rect(3160, 2052, 56, 48)  # 210 key in janitor's room
+                "zone": pygame.Rect(1203, 1499, 56, 48) , "collected": False # 210 key in janitor's room
             },
             "toolbox": {
-                "zone": pygame.Rect(2631, 2213, 211, 169) # maitanence room
+                "zone": pygame.Rect(2577, 2210, 120, 120), "collected": False # maitanence room
             },
             "flashlight": {
-                "zone": pygame.Rect(2501, 2261, 129, 117) # maitanence room
+                "zone": pygame.Rect(2531, 2240, 120, 120), "collected": False # maitanence room
             },
             "locker": {
-                "zone": pygame.Rect(3021, 2041, 59,53 ) # badge in janitor's locker
+                "zone": pygame.Rect(3062, 2186, 120,120 ), "collected": False # badge in janitor's locker
             },
             "stool": {
-                "zone": pygame.Rect(1407, 410, 64, 63) # janitor key in gym
+                "zone": pygame.Rect(1387, 450, 64, 63),"collected": False   # janitor key in gym
             }
         }
 
@@ -83,12 +83,12 @@ class ObjectInteraction:
             if player_rect.colliderect(zone):
 
                 if name in self.items:
-                    self.trigger(self.items[name])
+                    self.trigger(self.items[name], name)
 
     # -------------------------
     # SHOW ITEM
     # -------------------------
-    def trigger(self, item_name):
+    def trigger(self, item_name, zone_name= None):
         self.visible = True
         self.current_item = item_name
         self.popup_start_time = pygame.time.get_ticks()
@@ -101,6 +101,8 @@ class ObjectInteraction:
         else:
             inventory.add_item(item_name)
 
+        if zone_name: 
+            self.zones[zone_name]["collected"] = True
     def hide(self):
         self.visible = False
         self.current_item = None
@@ -121,16 +123,49 @@ class ObjectInteraction:
         overlay.fill((0, 0, 0))
         screen.blit(overlay, (0, 0))
 
-        img = self.images[self.current_item]
-        rect = img.get_rect(center=(screen.get_width() // 2, 280))
-        screen.blit(img, rect)
+        if isinstance(self.current_item, list ):
+            total_width = len(self.current_item) *120
+            start_x = (screen.get_width()- total_width) //2
+            y = 280
+        
+            for idx, item in enumerate(self.current_item):
+                img = self.images[self.current_item]
+                rect = img.get_rect(center=(screen.get_width() // 2, 280))
+                screen.blit(img, rect)
 
-        text = self.font.render(
-            f"Obtained: {self.current_item}",
-            True,
-            (255, 255, 255)
-        )
+            text = self.font.render(
+                f"Obtained: {', '.join(self.current_item)}",
+                True,
+                (255, 255, 255)
+            )
+        else:
+            img = self.images[self.current_item]
+            rect = img.get_rect(center=(screen.get_width() // 2, 280))
+            screen.blit(img, rect)
+
+            text = self.font.render(
+                f"Obtained: {self.current_item}",
+                True,
+                (255, 255, 255)
+            )
+
         screen.blit(text, text.get_rect(center=(screen.get_width() // 2, 460)))
+
+    def show_object_prompt( self, screen, font, zone, player_rect, camera_x=0, camera_y=0, collected= False):
+        if collected:
+            return
+        
+        # show r above zone
+        draw_x = zone.centerx - camera_x 
+        draw_y = zone.top - camera_y - 30
+
+              # Draw circle around R
+        pygame.draw.circle(screen, (153,204,255), (draw_x, draw_y), 20)
+
+        text = font.render("R", True, (0,0,0))
+        text_rect = text.get_rect(center=(draw_x, draw_y))
+        screen.blit(text, text_rect)
+
 
 #level 2 boltcutter for janitor's locker to get security badge, janitorkey- unlock janitor's room, 210key- unlock jay's room
 #level 1 coordinates for fusebox-screwdriver, exit key in recetionist locker - trigger ending scene, room 117- bathroom mirror

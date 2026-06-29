@@ -31,7 +31,7 @@ L2Weapons = {
         "popup_text": "Main Weapon piece 1 collected"
     },
     "BananaPeel": {
-        "zone":pygame.Rect(1428, 341, 90, 90), #just a placeholder cause im not sure of the exact position
+        "zone":pygame.Rect(1428, 371, 90, 90), #just a placeholder cause im not sure of the exact position
         "uses": 3,
         "prompt": "R",
         "collected": False,
@@ -59,7 +59,7 @@ L2Weapons = {
 L1Weapons = {
     #Level 1 Weapons
     "MWpiece2": {
-        "zone": pygame.Rect(2036, 2425, 90, 90),
+        "zone": pygame.Rect(2537, 2252, 90, 90),
         "uses": 0,
         "prompt": "R",
         "collected": False,
@@ -67,7 +67,7 @@ L1Weapons = {
         "popup_text": "Main Weapon piece 2 collected!"
     },
     "Salt":{
-        "zone": pygame.Rect(2322, 105, 45, 45),
+        "zone": pygame.Rect(2422, 104, 45, 45),
         "uses": 3,
         "prompt": "R",
         "collected": False,
@@ -75,14 +75,14 @@ L1Weapons = {
         "popup_text": "Salt = Sprinkle across the doorway or drop a salt line to block the ghost temporarily. 3 uses"
     },
     "KitchenKnife":{
-        "zone": pygame.Rect(1910, 328, 50, 50),
+        "zone": pygame.Rect(1918, 328, 50, 50),
         "prompt": "R",
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "KitchenKnife.png")).convert_alpha(), (70,70)),
         "popup_text": "Kitchen Knife = Kill the receptionist."
     },
     "MWpiece3": {
-        "zone": pygame.Rect(200, 470, 50, 100),
+        "zone": pygame.Rect(146, 1127, 50, 100),
         "uses": 0,
         "prompt": "R",
         "collected": False,

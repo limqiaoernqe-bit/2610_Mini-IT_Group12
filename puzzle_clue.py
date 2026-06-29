@@ -22,7 +22,7 @@ clue_image = pygame.image.load(os.path.join(ASSET_DIR, "Clue.png"))
 clue_image = pygame.transform.scale(clue_image, (90,90))
 
 # Clue Zone
-Clue = {
+ClueL2 = {
     "Clue1": {
         "zone": pygame.Rect(2095,2227,150,150),
         "prompt": "R",
@@ -31,10 +31,12 @@ Clue = {
         "show_popup": False,
         "text": "Loud steps mean he's near, Soft steps mean he's far",
         "image": clue_image,
-    },
+    }
+}
 
+ClueL1 = {
     "Clue2": {
-        "zone": pygame.Rect(270,200,50,70),
+        "zone": pygame.Rect(2034,1836,50,70),
         "prompt":"R",
         "active": True,
         "show_prompt": False,

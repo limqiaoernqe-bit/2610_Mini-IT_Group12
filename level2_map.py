@@ -8,7 +8,7 @@ from inventory import game_inventory as inventory, ROOM_210_KEY, ROOM_206_KEY, J
 from player import Player
 from room_navigation import RoomTrigger
 from door import Door
-from puzzle_clue import Puzzle, Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
+from puzzle_clue import Puzzle, ClueL2 as Clue, show_puzzle_prompt, show_clue_prompt, show_popup, puzzle_screen, handle_puzzle_input 
 from weapon import L2Weapons, Weapons, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound, active_traps
 from inventory_bar import draw_inventory, handle_inventory_click 
 from janitor import Janitor
@@ -384,8 +384,6 @@ while running:
                         with open("save_inventory.json", "w") as f:
                             json.dump(save_data, f)
                         running = False
-                        pygame.quit()
-                        subprocess.run(["python", "level1_map.py"])
                         break
                     else:
                         print("The stairs are locked. Find a way to unlock them.")
@@ -564,18 +562,15 @@ while running:
     draw_traps(screen, camera_x, camera_y)
     draw_salt(screen, camera_x, camera_y)
 
-    # outline puzzle zone & clue js to check
-    zone = Puzzle["Treadmill"]["zone"]
-    pygame.draw.rect(screen, (255, 0, 0),
-         pygame.Rect(zone.x - camera_x, zone.y - camera_y, zone.width, zone.height), 2)
-    
+    # show R for objects when not picked
+    for name, data in object_interaction.zones.items():
+        zone = data["zone"]
+        collected = data.get("collected", False)
+        object_interaction.show_object_prompt(screen, font, zone, player_rect, camera_x, camera_y, collected)    
+
         # draw inventory
     draw_inventory(screen, inventory, Weapons, object_interaction, screen_width, screen_height)
-    
-    for clue in Clue.values():
-        czone = clue["zone"]
-        pygame.draw.rect(screen, (255, 0, 0),
-            pygame.Rect(czone.x - camera_x, czone.y - camera_y, czone.width, czone.height), 2)
+        
         
     # Show R interaction prompt for level 1 stairs
     if stairs_trigger.check_collision(player_rect):
@@ -696,3 +691,5 @@ while running:
     pygame.display.flip()
 
 pygame.quit()
+subprocess.run(["python", "level1_map.py"])
+                    

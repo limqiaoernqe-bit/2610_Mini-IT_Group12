@@ -13,6 +13,7 @@ from weapon import L1Weapons, Weapons, use_weapon, show_prompt, draw_traps, plac
 from inventory_bar import draw_inventory, handle_inventory_click
 from object_interaction import ObjectInteraction
 object_interaction = ObjectInteraction()
+from puzzle_clue import ClueL1 as Clue, show_clue_prompt, show_popup
 import json
 try:
     with open("save_inventory.json", "r") as f:
@@ -340,7 +341,16 @@ while running:
                     running = False
                 
                     object_interaction.try_interact(player_rect)
-
+        
+                # clue 
+                for clue in Clue.values():
+                    if clue["show_prompt"] and clue ["active"]:
+                        clue["show_popup"] = True
+                        clue["active"] = False
+            if event.key == pygame.K_c:
+                for clue in Clue.values():
+                    if clue ["show_popup"]:
+                        clue["show_popup"] = False
 
     
           # to find coordinates
@@ -509,6 +519,15 @@ while running:
 
         # draw inventory
     draw_inventory(screen, inventory, Weapons, object_interaction, screen_width, screen_height)
+
+            # clue 
+    for clue in Clue.values():
+            if "image" in clue:
+                screen.blit(clue["image"], (clue["zone"].x  - camera_x, clue["zone"].y - camera_y))
+            show_clue_prompt(screen, font, player_rect, clue, camera_x, camera_y)
+            if clue["show_popup"]:
+                show_popup(screen, font, clue)
+
 
     # Show R interaction prompt above stairs
     if stairs_to_level2.check_collision(player_rect):

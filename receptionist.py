@@ -12,6 +12,7 @@ class Receptionist:
         self.state = "chasing"
         self.defeat = False
         self.stun_timer = 0
+        self.slip_unti = 0 
 
         self.frame = 0
         self.anim_speed = 0.12
@@ -85,10 +86,26 @@ class Receptionist:
             if pygame.time.get_ticks() - self.stun_timer > 10000: 
                 self.state = "chasing"
             else:
-                return      
-        if self.state == "chasing":
-           dx = player_x - self.x
-           dy = player_y - self.y
+                return
+
+        if self.state == "slipping":
+            now = pygame.time.get_ticks()
+
+            if now < self.slip_until:
+               self.slip_angle = (self.slip_angle + 10) % 360
+               self.image = pygame.transform.rotate(self.idle_front, self.slip_angle)
+               self.x -= 2
+               self.y -= 1 
+               self.rect.center = (self.x, self.y)
+
+            else:
+               self.image = pygame.transform.rotate(self.idle_front, 90)
+            if now > self.lay_until:
+                self.state = "chasing"
+            return
+        
+        dx = player_x - self.x
+        dy = player_y - self.y
 
         # Receptionist collision hitbox
         receptionist_rect = pygame.Rect(
