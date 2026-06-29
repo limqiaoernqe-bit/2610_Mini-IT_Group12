@@ -14,6 +14,10 @@ from inventory_bar import draw_inventory, handle_inventory_click
 from janitor import Janitor
 from object_interaction import ObjectInteraction
 from scenes.hotelscene2 import on_chloe_saved, on_jay_saved, scene_manager
+from gameover_system import GameOverSystem
+
+game_over_system = GameOverSystem(lives=3, spawn_point=(2160, 2160))  # maintenance room
+
 
 
 # Weapon Popup system
@@ -333,6 +337,17 @@ while running:
 
     # Events
     for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            result = game_over_system.handle_click(event.pos, player)
+
+            if result == "retry":
+                player.x, player.y = game_over_system.spawn_point
+
+            elif result == "quit":
+                pygame.quit()
+                import sys
+                subprocess.run([sys.executable, "main.py"])
+                exit()
         if event.type == pygame.QUIT:
             running = False
 
@@ -471,7 +486,11 @@ while running:
                     )
 
     # Player Movement
-    keys = pygame.key.get_pressed()
+    # STOP GAME IF GAME OVER
+    if game_over_system.is_game_over():
+        keys = None
+    else:
+        keys = pygame.key.get_pressed()
 
     # Active collision walls
     active_walls = normal_walls + stairs_walls
@@ -487,14 +506,20 @@ while running:
         active_walls += room206_walls
 
     # Move player
-    player.update(keys, active_walls)
-
-    # Move janitor
-    janitor.update(
-        player.x, 
+    if not game_over_system.is_game_over():
+        player.update(keys, active_walls)
+        janitor.update(
+        player.x,
         player.y,
         active_walls
-    )
+        )
+
+
+
+    # GAME OVER CHECK (janitor collision)
+    if janitor.rect.colliderect(player_rect):
+        game_over_system.on_caught(player)
+
 
     # Unlock stairs when janitor is defeated
     if janitor.defeat:
@@ -503,6 +528,41 @@ while running:
     # Camera System
     camera_x = player.x - screen_width // 2
     camera_y = player.y - screen_height // 2
+
+    # ===========================
+    # GAME OVER SCREEN
+    # ===========================
+    if game_over_system.is_game_over():
+
+        game_over_system.draw(screen)
+
+        # handle events (NO pygame.event.get() here)
+        mouse_clicked = False
+        mouse_pos = (0, 0)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_clicked = True
+                mouse_pos = event.pos
+
+        if mouse_clicked:
+            result = game_over_system.handle_click(mouse_pos, player)
+
+            if result == "retry":
+                player.x, player.y = game_over_system.spawn_point
+
+            elif result == "quit":
+                pygame.quit()
+                import sys
+
+                subprocess.run([sys.executable, "main.py"])
+                exit()
+
+        pygame.display.flip()
+        continue
 
     # Draw everything
     screen.fill((0, 0, 0))
@@ -670,7 +730,7 @@ while running:
                 message = "Defeat the janitor to unlock the stairs."
 
             elif room.locked:
-                message = f"{room.message} is locked. Please find a key."
+                message = f"{room.message} is locked. Please find a key. Press E to unlock."
 
             else:
                 message = room.message
