@@ -1,5 +1,10 @@
 <<<<<<< HEAD
 {"items": [], "uses": {}}
 =======
+<<<<<<< HEAD
 {"items": ["MWpiece1", "JANITOR_KEY", "BananaPeel"], "uses": {"MWpiece1": 0, "BananaPeel": 3}}
 >>>>>>> 6489e87 (save local changes before sync)
+=======
+{"items": ["BananaPeel", "JANITOR_KEY"], "uses": {"BananaPeel": 3}}
+>>>>>>> cc9369f (Update janitor AI and hotel scene)
+>>>>>>> 8746b76 (Update janitor AI and hotel scene)

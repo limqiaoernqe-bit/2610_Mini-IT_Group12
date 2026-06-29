@@ -60,7 +60,7 @@ pygame.init()
 pygame.font.init()
 
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Camera Test")
+pygame.display.set_caption("Level 2")
 
 clock = pygame.time.Clock()
 
@@ -131,8 +131,9 @@ player = Player()
 
 # Janitor spawn position
 janitor = Janitor(
-    1632,
-    1056
+    1700,
+    1148,
+    TILE_SIZE
 )
 
 object_interaction = ObjectInteraction()
@@ -506,11 +507,38 @@ while running:
         active_walls += room206_walls
 
     # Move player
+<<<<<<< HEAD
     if not game_over_system.is_game_over():
         player.update(keys, active_walls)
         janitor.update(
         player.x,
+=======
+    player.update(keys, active_walls)
+
+    # Convert collision rectangles into blocked grid tiles
+    blocked = set()
+
+    for wall in active_walls:
+        
+        left = wall.left // TILE_SIZE
+        right = wall.right // TILE_SIZE
+
+        top = wall.top // TILE_SIZE
+        bottom = wall.bottom // TILE_SIZE
+
+        for y in range(top, bottom):
+            for x in range(left, right):
+                blocked.add((x, y))
+
+    # Just for testing
+    print("Blocked tiles:", len(blocked))
+
+    # Now pass blocked instead of active_walls
+    janitor.update(
+        player.x, 
+>>>>>>> 8746b76 (Update janitor AI and hotel scene)
         player.y,
+        blocked,
         active_walls
         )
 
@@ -747,6 +775,24 @@ while running:
 
     # Draw dialogue cutscenes if active
     scene_manager.draw(screen, font, image_dict)
+
+    # Show janitor popup if active
+    if hasattr(janitor, "popup_message") and janitor.popup_message:
+        if pygame.time.get_ticks() - janitor.popup_start_time < janitor.popup_duration:
+            popup_width = 600
+            popup_height = 150
+            popup_x = (screen_width - popup_width) // 2
+            popup_y = (screen_height - popup_height) // 2
+            popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
+
+            pygame.draw.rect(screen, (255,255,255), popup_rect)
+            pygame.draw.rect(screen, (0,0,0), popup_rect, 2)
+
+            text_surface = font.render(janitor.popup_message, True, (0,0,0))
+            text_rect = text_surface.get_rect(center=popup_rect.center)
+            screen.blit(text_surface, text_rect)
+        else:
+            janitor.popup_message = None
 
     pygame.display.flip()
 
