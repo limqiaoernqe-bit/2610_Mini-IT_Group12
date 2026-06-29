@@ -79,7 +79,17 @@ class Janitor:
         if self.current_frames != new_frames:
             self.current_frames = new_frames
             self.frame = 0  
-
+        
+        # if defeats the janitor js stops moving
+        if self.defeat:
+            return 
+         # stops the janitor for 10 seconds
+        if self.state == "stunned":
+            if pygame.time.get_ticks() - self.stun_timer > 10000: 
+                self.state = "chasing"
+            else:
+                return
+                
     def update(self, player_x, player_y, walls):
         
         # if defeats the janitor js stops moving

@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"items": [], "uses": {}}
+=======
+{"items": ["MWpiece1", "JANITOR_KEY", "BananaPeel"], "uses": {"MWpiece1": 0, "BananaPeel": 3}}
+>>>>>>> 6489e87 (save local changes before sync)
