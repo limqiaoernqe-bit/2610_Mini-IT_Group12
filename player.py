@@ -6,7 +6,7 @@ class Player:
     def __init__(self):
         self.x = 400
         self.y = 300
-        self.speed = 4
+        self.speed = 8
 
 
         self.idle_front = pygame.transform.scale(

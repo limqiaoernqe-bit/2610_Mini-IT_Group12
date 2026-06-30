@@ -1,6 +1,7 @@
 import pygame
 import pytmx
 import subprocess
+from gameover_system import GameOverSystem
 
 from inventory import game_inventory as inventory, SECURITY_BADGE, ROOM116_KEY, ROOM117_KEY, ROOM116_117_CODE, EXIT_DOOR_KEY
 from ghost import Ghost
@@ -129,13 +130,16 @@ for layer in tmx_data.visible_layers:
                     elif layer.name == "exit collision":
                         exit_door_walls.append(wall_rect)
 
+
 # Create player
 player = Player()
 
+game_over_system = GameOverSystem(lives=3, spawn_point=(1776, 2784))
+
 # Receptionist spawn position
 receptionist = Receptionist(
-    2592,
-    1872
+    2783, 
+    1864
 )
 
 # Ghost spawn position
@@ -320,7 +324,6 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 
                 # Pick up exit door key
@@ -427,7 +430,11 @@ while running:
 
 
     # Player Movement
-    keys = pygame.key.get_pressed()
+    if game_over_system.is_game_over():
+        keys = None
+    else:
+        keys = pygame.key.get_pressed()
+        player.update(keys, active_walls)
 
     # Active collision walls
     active_walls = normal_walls.copy() 
@@ -461,6 +468,13 @@ while running:
         player.x,
         player.y
     )
+
+    # GAME OVER CHECK (ghost collision)
+    if ghost.rect.colliderect(player_rect):
+        game_over_system.on_caught(player)
+
+    if receptionist.rect.colliderect(player_rect):
+        game_over_system.on_caught(player)
 
     # Camera System
     camera_x = player.x - screen_width // 2
@@ -639,11 +653,6 @@ while running:
     room116_117.locked = room116_117_door.is_locked()
     exit_trigger.locked = exit_door.is_locked()
 
-    # Ending scene after exit the place
-        
-
-
-
     # Room labels
     for room in room_triggers:
 
@@ -689,6 +698,24 @@ while running:
             screen.blit(text_surface, (20, 20))
 
     object_interaction.draw(screen)
+
+    if game_over_system.is_game_over():
+        game_over_system.draw(screen)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                result = game_over_system.handle_click(event.pos, player)
+
+                if result == "retry":
+                    player.x, player.y = game_over_system.spawn_point
+
+                elif result == "quit":
+                    pygame.quit()
+                    subprocess.run(["python", "main.py"])
+                    exit()
+
+        pygame.display.flip()
+        continue
 
     pygame.display.flip()
 

@@ -1,8 +1,10 @@
 import pygame
 import sys
+import subprocess
 
 from scenes.menu_scene import MenuScene
 from scenes.scene_manager import SceneManager
+from scenes.hotelscene1 import HotelScene1
 
 pygame.init()
 
@@ -29,6 +31,12 @@ while run:
     # scene system
     scene_manager.handle_events(events)
     scene_manager.update()
+    # If HotelScene1 finished, quit and launch level 2
+    if isinstance(scene_manager.current_scene, HotelScene1) and getattr(scene_manager.current_scene, "finished", False):
+        pygame.quit()
+        subprocess.run(["python", "level2_map.py"])
+        break 
+    
     scene_manager.draw(screen)
 
     pygame.display.flip()

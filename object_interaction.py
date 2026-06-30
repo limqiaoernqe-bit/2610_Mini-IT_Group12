@@ -20,10 +20,13 @@ class ObjectInteraction:
                 "zone": pygame.Rect(1203, 1499, 56, 48) , "collected": False # 210 key in janitor's room
             },
             "toolbox": {
-                "zone": pygame.Rect(2577, 2210, 120, 120), "collected": False # maitanence room
+
+
+                "zone": pygame.Rect(2631, 2213, 211, 169) # maintanence room
             },
             "flashlight": {
-                "zone": pygame.Rect(2531, 2240, 120, 120), "collected": False # maitanence room
+                "zone": pygame.Rect(2501, 2261, 129, 117) # maintanence room
+
             },
             "locker": {
                 "zone": pygame.Rect(3062, 2186, 120,120 ), "collected": False # badge in janitor's locker

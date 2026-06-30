@@ -14,6 +14,10 @@ from inventory_bar import draw_inventory, handle_inventory_click
 from janitor import Janitor
 from object_interaction import ObjectInteraction
 from scenes.hotelscene2 import on_chloe_saved, on_jay_saved, scene_manager
+from gameover_system import GameOverSystem
+
+game_over_system = GameOverSystem(lives=3, spawn_point=(2160, 2160))  # maintenance room
+
 
 
 # Weapon Popup system
@@ -56,7 +60,7 @@ pygame.init()
 pygame.font.init()
 
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Camera Test")
+pygame.display.set_caption("Level 2")
 
 clock = pygame.time.Clock()
 
@@ -127,8 +131,9 @@ player = Player()
 
 # Janitor spawn position
 janitor = Janitor(
-    1632,
-    1056
+    1700,
+    1148,
+    TILE_SIZE
 )
 
 object_interaction = ObjectInteraction()
@@ -337,6 +342,17 @@ while running:
 
     # Events
     for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            result = game_over_system.handle_click(event.pos, player)
+
+            if result == "retry":
+                player.x, player.y = game_over_system.spawn_point
+
+            elif result == "quit":
+                pygame.quit()
+                import sys
+                subprocess.run([sys.executable, "main.py"])
+                exit()
         if event.type == pygame.QUIT:
             running = False
 
@@ -475,7 +491,11 @@ while running:
                     )
 
     # Player Movement
-    keys = pygame.key.get_pressed()
+    # STOP GAME IF GAME OVER
+    if game_over_system.is_game_over():
+        keys = None
+    else:
+        keys = pygame.key.get_pressed()
 
     # Active collision walls
     active_walls = normal_walls + stairs_walls
@@ -493,16 +513,78 @@ while running:
     # Move player
     player.update(keys, active_walls)
 
-    # Move janitor
+    # Convert collision rectangles into blocked grid tiles
+    blocked = set()
+
+    for wall in active_walls:
+        
+        left = wall.left // TILE_SIZE
+        right = wall.right // TILE_SIZE
+
+        top = wall.top // TILE_SIZE
+        bottom = wall.bottom // TILE_SIZE
+
+        for y in range(top, bottom):
+            for x in range(left, right):
+                blocked.add((x, y))
+
+    # Now pass blocked instead of active_walls
     janitor.update(
         player.x, 
         player.y,
+        blocked,
         active_walls
-    )
+        )
+
+
+
+    # GAME OVER CHECK (janitor collision)
+    if janitor.rect.colliderect(player_rect):
+        game_over_system.on_caught(player)
+
 
     # Unlock stairs when janitor is defeated
     if janitor.defeat:
         stairs_trigger.locked = False
+
+    # Camera System
+    camera_x = player.x - screen_width // 2
+    camera_y = player.y - screen_height // 2
+
+    # ===========================
+    # GAME OVER SCREEN
+    # ===========================
+    if game_over_system.is_game_over():
+
+        game_over_system.draw(screen)
+
+        # handle events (NO pygame.event.get() here)
+        mouse_clicked = False
+        mouse_pos = (0, 0)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_clicked = True
+                mouse_pos = event.pos
+
+        if mouse_clicked:
+            result = game_over_system.handle_click(mouse_pos, player)
+
+            if result == "retry":
+                player.x, player.y = game_over_system.spawn_point
+
+            elif result == "quit":
+                pygame.quit()
+                import sys
+
+                subprocess.run([sys.executable, "main.py"])
+                exit()
+
+        pygame.display.flip()
+        continue
 
     # Draw everything
     screen.fill((0, 0, 0))
@@ -589,7 +671,13 @@ while running:
 
     # Press E to unlock Room 210 (Jay's room)
     if room_210.check_collision(player_rect):
-        if keys[pygame.K_e]and room210_door.is_locked():
+
+        # Only try to unlock if the player actually has the key
+        if (
+            ROOM_210_KEY in inventory.items
+            and keys[pygame.K_e]
+            and room210_door.is_locked()
+        ):
             inventory.use_item(
                 ROOM_210_KEY,
                 room210_door
@@ -600,7 +688,11 @@ while running:
     # Press E to unlock Janitor Room
     if janitor_room.check_collision(player_rect):
         
-        if keys[pygame.K_e]:
+        if (
+            JANITOR_KEY in inventory.items
+            and keys[pygame.K_e]
+            and janitor_door.is_locked()
+        ):
             inventory.use_item(
                 JANITOR_KEY,
                 janitor_door
@@ -609,7 +701,11 @@ while running:
     # Press E to unlock Room 206 (Chloe's room)
     if room_206.check_collision(player_rect):
         
-        if keys[pygame.K_e] and room206_door.is_locked():
+        if (
+            ROOM_206_KEY in inventory.items
+            and keys[pygame.K_e]
+            and room206_door.is_locked()
+        ):
             inventory.use_item(
                 ROOM_206_KEY,
                 room206_door
@@ -670,7 +766,27 @@ while running:
                 message = "Defeat the janitor to unlock the stairs."
 
             elif room.locked:
-                message = f"{room.message} is locked. Please find a key."
+                
+                # Room 210
+                if room == room_210:
+                    if ROOM_210_KEY in inventory.items:
+                        message = "Room 210 is locked. Press E to unlock."
+                    else:
+                        message = "Room 210 is locked. Please find the Room 210 key."
+
+                # Room 206
+                elif room == room_206:
+                    if ROOM_206_KEY in inventory.items:
+                        message = "Room 206 is locked. Press E to unlock."
+                    else:
+                        message = "Room 206 is locked. Please find the Room 206 key."
+
+                # Janitor room
+                elif room == janitor_room:
+                    if JANITOR_KEY in inventory.items:
+                        message = "Janitor Room is locked. Press E to unlock."
+                    else:
+                        message = "Janitor Room is locked. Please find the Janitor key."
 
             else:
                 message = room.message
@@ -687,6 +803,24 @@ while running:
 
     # Draw dialogue cutscenes if active
     scene_manager.draw(screen, font, image_dict)
+
+    # Show janitor popup if active
+    if hasattr(janitor, "popup_message") and janitor.popup_message:
+        if pygame.time.get_ticks() - janitor.popup_start_time < janitor.popup_duration:
+            popup_width = 600
+            popup_height = 150
+            popup_x = (screen_width - popup_width) // 2
+            popup_y = (screen_height - popup_height) // 2
+            popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
+
+            pygame.draw.rect(screen, (255,255,255), popup_rect)
+            pygame.draw.rect(screen, (0,0,0), popup_rect, 2)
+
+            text_surface = font.render(janitor.popup_message, True, (0,0,0))
+            text_rect = text_surface.get_rect(center=popup_rect.center)
+            screen.blit(text_surface, text_rect)
+        else:
+            janitor.popup_message = None
 
     pygame.display.flip()
 
