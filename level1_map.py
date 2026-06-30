@@ -350,11 +350,7 @@ while running:
 
                     # Close level 1 and open level 2
                     pygame.quit()
-<<<<<<< HEAD
-                    subprocess.run(["python3", "level2_map.py", "stairs"])
-=======
                     subprocess.run(["python", "level2_map.py", "stairs"])
->>>>>>> 9bb184d (Fixed some issues)
                     running = False
                 else:                
                     object_interaction.try_interact(player_rect)
@@ -443,15 +439,12 @@ while running:
                                       "placed_time": pygame.time.get_ticks()})                        
 
 
-<<<<<<< HEAD
-=======
     # Player Movement
     if game_over_system.is_game_over():
         keys = None
     else:
         keys = pygame.key.get_pressed()
 
->>>>>>> 9bb184d (Fixed some issues)
     # Active collision walls
     active_walls = normal_walls.copy()
 
@@ -470,11 +463,8 @@ while running:
     if exit_door.is_locked():
         active_walls += exit_door_walls
 
-<<<<<<< HEAD
-=======
     if keys is not None:
         player.update(keys, active_walls)
->>>>>>> 9bb184d (Fixed some issues)
 
     # Player Movement
     if game_over_system.is_game_over():
