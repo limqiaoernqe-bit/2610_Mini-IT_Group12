@@ -323,6 +323,10 @@ while running:
 
     clock.tick(60)
 
+    # Camera System
+    camera_x = player.x - screen_width // 2
+    camera_y = player.y - screen_height // 2
+
     # Player collision rect
     player_rect = pygame.Rect(
         player.x - 30,
@@ -499,10 +503,6 @@ while running:
     # Unlock stairs when janitor is defeated
     if janitor.defeat:
         stairs_trigger.locked = False
-
-    # Camera System
-    camera_x = player.x - screen_width // 2
-    camera_y = player.y - screen_height // 2
 
     # Draw everything
     screen.fill((0, 0, 0))

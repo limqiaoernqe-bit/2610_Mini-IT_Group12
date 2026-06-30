@@ -5,15 +5,14 @@ import subprocess
 from inventory import game_inventory as inventory, SECURITY_BADGE, ROOM116_KEY, ROOM117_KEY, ROOM116_117_CODE, EXIT_DOOR_KEY
 from ghost import Ghost
 from receptionist import Receptionist
-from weapon import barricade
 from player import Player
 from door import Door
 from room_navigation import RoomTrigger
-from weapon import L1Weapons, Weapons, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound, active_traps
+from weapon import L1Weapons, Weapons, use_weapon, show_prompt, draw_traps, place_salt, draw_salt, pieces_collected, unlock_sound, mw_sound, active_traps, salt_line
 from inventory_bar import draw_inventory, handle_inventory_click
 from object_interaction import ObjectInteraction
 object_interaction = ObjectInteraction()
-from puzzle_clue import ClueL1 as Clue, show_clue_prompt, show_popup
+from puzzle_clue import ClueL1 as Clue, show_clue_prompt, show_popup, PuzzleL1, show_puzzle_prompt, puzzle_screen, handle_puzzle_input
 import json
 try:
     with open("save_inventory.json", "r") as f:
@@ -302,6 +301,7 @@ def draw_map(surface, camera_x, camera_y):
 
 # Main Game Loop
 running = True
+active_puzzle = None
 
 while running:
 
@@ -341,6 +341,11 @@ while running:
                     running = False
                 
                     object_interaction.try_interact(player_rect)
+
+                # puzzle
+                if player_rect.colliderect(PuzzleL1["KeyArea"]["zone"]):
+                    PuzzleL1["KeyArea"]["active"] = True
+                    active_puzzle = PuzzleL1["KeyArea"]
         
                 # clue 
                 for clue in Clue.values():
@@ -351,6 +356,13 @@ while running:
                 for clue in Clue.values():
                     if clue ["show_popup"]:
                         clue["show_popup"] = False
+
+            # close puzzle when C
+            if event.key == pygame.K_c and active_puzzle and active_puzzle["active"]:
+                active_puzzle["active"] = False
+
+            if active_puzzle and active_puzzle["active"]:
+                handle_puzzle_input(event, active_puzzle, inventory, object_interaction)
 
     
           # to find coordinates
@@ -394,6 +406,10 @@ while running:
                         popup_start_time = pygame.time.get_ticks()
                         popup_message = weapon["popup_text"]
 
+                    if player_rect.colliderect(PuzzleL1["KeyArea"]["zone"]) and not PuzzleL1["KeyArea"]["collected"]:
+                       PuzzleL1["KeyArea"]["active"] = True
+                       active_puzzle = PuzzleL1["KeyArea"]
+
                         # Use currectly selected weapons
            if event.key == pygame.K_w:
                 if event.key == pygame.K_w and player.held_weapon:
@@ -404,7 +420,10 @@ while running:
                         enemies,
                         player.direction,
                         inventory
-                    )                        
+                    )
+                    salt_rect = pygame.Rect(player.x - 50, player.y, 100, 13)
+                    salt_line.append({"rect": salt_rect, 
+                                      "placed_time": pygame.time.get_ticks()})                        
 
 
     # Player Movement
@@ -435,7 +454,6 @@ while running:
     player.x,
     player.y,
     active_walls,
-    barricade
     )
 
     # Move ghost
@@ -515,18 +533,40 @@ while running:
 
     # draw use weapon
     draw_traps(screen, camera_x, camera_y)
-    draw_salt(screen, camera_x, camera_y)
+    #removed salt lines aftrer 40 seconds
+    current_time = pygame.time.get_ticks()
+    salt_line[:] = [s for s in salt_line if current_time - s["placed_time"] < 40000]
+    for salt in salt_line:
+        screen_rect = pygame.Rect(
+            salt["rect"].x - camera_x,
+            salt["rect"].y - camera_y,
+            salt["rect"].width,
+            salt["rect"].height 
+        )
+        pygame.draw.rect(screen, (255, 255, 255), screen_rect)
 
         # draw inventory
     draw_inventory(screen, inventory, Weapons, object_interaction, screen_width, screen_height)
 
+            # puzzle prompt
+    show_puzzle_prompt(screen,font, PuzzleL1["KeyArea"], PuzzleL1["KeyArea"]["zone"].centerx, PuzzleL1["KeyArea"]["zone"].centery,camera_x, camera_y)
+
+    if active_puzzle and active_puzzle["active"]:
+        puzzle_screen(active_puzzle, screen, font, screen_width, screen_height)
+
+    if active_puzzle and active_puzzle["collected"]:
+        if pygame.time.get_ticks() - active_puzzle.get("correct_start", 0) > 3000:  # Show message for 3 seconds
+            active_puzzle["active"] = False
+
             # clue 
     for clue in Clue.values():
+        if not (active_puzzle and active_puzzle["active"]):
             if "image" in clue:
                 screen.blit(clue["image"], (clue["zone"].x  - camera_x, clue["zone"].y - camera_y))
             show_clue_prompt(screen, font, player_rect, clue, camera_x, camera_y)
-            if clue["show_popup"]:
-                show_popup(screen, font, clue)
+
+        if clue["show_popup"]:
+            show_popup(screen, font, clue)
 
 
     # Show R interaction prompt above stairs
@@ -572,7 +612,7 @@ while running:
                 room117_door
             )
             # Trigger James's cutscene
-            on_james_saved
+            on_james_saved()
 
      # Press E to unlock Connecting Door
     if room116_117.check_collision(player_rect):

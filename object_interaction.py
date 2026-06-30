@@ -1,6 +1,6 @@
 import pygame
 from inventory import game_inventory as inventory
-from inventory import JANITOR_KEY, ROOM_210_KEY, SECURITY_BADGE, ROOM_206_KEY
+from inventory import JANITOR_KEY, ROOM_210_KEY, SECURITY_BADGE, ROOM_206_KEY, ROOM116_KEY
 
 class ObjectInteraction:
     def __init__(self):
@@ -29,7 +29,7 @@ class ObjectInteraction:
                 "zone": pygame.Rect(3062, 2186, 120,120 ), "collected": False # badge in janitor's locker
             },
             "stool": {
-                "zone": pygame.Rect(1387, 450, 64, 63),"collected": False   # janitor key in gym
+                "zone": pygame.Rect(1387, 445, 64, 63),"collected": False   # janitor key in gym
             }
         }
 
@@ -58,6 +58,7 @@ class ObjectInteraction:
             "screwdriver": self.load("assets/screwdriver.png"),
             ROOM_210_KEY: self.load("assets/210key.png"),
             "116key": self.load("assets/116key.png"),
+            ROOM116_KEY: self.load("assets/116key.png"),
             JANITOR_KEY: self.load("assets/janitorkey.png"),
             SECURITY_BADGE: self.load("assets/badge.png"),
             ROOM_206_KEY: self.load("assets/206key.png")

@@ -108,6 +108,11 @@ class Janitor:
             if now > self.lay_until:
                 self.state = "chasing"
             return
+        
+        if self.state == "slowed":
+            if pygame.time.get_ticks() - self.stun_timer > 5000:
+                self.speed = self.original_speed
+                self.state = "chasing"
 
         dx = player_x - self.x
         dy = player_y - self.y
@@ -193,8 +198,10 @@ class Janitor:
             self.slip_angle = 0
 
         elif effect == "CleaningSpray":
-            self.state = "stunned" 
+            self.state = "slowed" 
             self.stun_timer = pygame.time.get_ticks()
+            self.original_speed = self.speed
+            self.speed = max(0.5, self.speed - 0.5 ) #speed reduced by 0.5
 
         elif effect == "BaseballBat":
             self.state = "defeated"

@@ -11,6 +11,7 @@ class Ghost:
         self.speed = 1.5
         self.state = "chasing"
         self.defeat = False
+        self.blocked_until = 0
 
 
         # SINGLE SPRITES ONLY
@@ -33,6 +34,13 @@ class Ghost:
 
         if self.defeat:
             return
+        
+        #blocked by salt
+        if self.state == "blocked":
+            if pygame.time.get_ticks() > self.blocked_until:
+                self.state = "chasing"
+            else:
+                return
         
         dx = player_x - self.x
         dy = player_y - self.y
@@ -60,11 +68,14 @@ class Ghost:
         future_rect = self.image.get_rect(midbottom=(next_x, next_y))
         for salt in salt_line:
             if future_rect.colliderect(salt["rect"]):
-                return 
+                self.state = "blocked"
+                self.blocked_until= pygame.time.get_ticks() + 40000
+                return
 
         # Move ghost   
         self.x = next_x
         self.y = next_y
+        self.rect = self.image.get_rect(center=(self.x, self.y))
 
 
     def draw(self, screen, camera_x = 0, camera_y = 0):
@@ -77,10 +88,10 @@ class Ghost:
         screen.blit(self.image, rect)
 
     def weapon_effect(self, effect):
-
         if effect == "MWfull":
             self.state = "defeat"
             self.defeat = True
 
-        if effect == "Salt":
+        elif effect == "Salt":
             self.state = "blocked"
+            self.blocked_until = pygame.time.get_ticks() + 40000

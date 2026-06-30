@@ -23,7 +23,7 @@ swing_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "baseballswing.mp3"))
 L2Weapons = {
     #Level 2 Weapons
     "MWpiece1": {
-        "zone": pygame.Rect(1379, 894, 90, 90), #just a placeholder cause im not sure of the exact position
+        "zone": pygame.Rect(1383, 791, 90, 90), #just a placeholder cause im not sure of the exact position
         "uses": 0,
         "prompt": "R",
         "collected": False,
@@ -31,7 +31,7 @@ L2Weapons = {
         "popup_text": "Main Weapon piece 1 collected"
     },
     "BananaPeel": {
-        "zone":pygame.Rect(1428, 371, 90, 90), #just a placeholder cause im not sure of the exact position
+        "zone":pygame.Rect(1552, 343, 90, 90), #just a placeholder cause im not sure of the exact position
         "uses": 3,
         "prompt": "R",
         "collected": False,
@@ -137,7 +137,7 @@ def use_weapon(name, player, player_rect, enemies, player_direction, inventory):
     elif name == "CleaningSpray":
         spray_sound.play()
         for enemy in enemies:
-            if player_rect.colliderect(enemy.image.get_rect(center=(enemy.x,enemy.y))):
+            if player_rect.colliderect(enemy.rect):
                 enemy.weapon_effect("CleaningSpray")
 
     elif name == "BaseballBat":

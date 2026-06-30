@@ -77,7 +77,7 @@ class Receptionist:
             self.current_frames = new_frames
             self.frame = 0  
 
-    def update(self, player_x, player_y, walls, barricade):
+    def update(self, player_x, player_y, walls):
 
         if self.defeat:
             return
@@ -104,6 +104,11 @@ class Receptionist:
                 self.state = "chasing"
             return
         
+        if self.state == "slowed":
+            if pygame.time.get_ticks() - self.stun_timer > 5000:
+                self.speed = self.original_speed
+                self.state = "chasing"
+               
         dx = player_x - self.x
         dy = player_y - self.y
 
@@ -207,6 +212,9 @@ class Receptionist:
         elif effect == "CleaningSpray":
             self.state = "stunned" 
             self.stun_timer = pygame.time.get_ticks()
+            self.original_speed = self.speed 
+            self.speed = max(0.5, self.speed - 0.5)
 
         elif effect == "KitchenKnife":
+            self.state = "defeated" 
             self.defeat = True
