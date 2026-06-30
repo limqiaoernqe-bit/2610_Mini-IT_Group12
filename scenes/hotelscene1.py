@@ -50,10 +50,10 @@ class HotelScene1(BaseScene):
         self.moving = True
 
     def spawn_janitor(self, pos):
-        print("SPAWNING JANITOR:", pos) 
-        self.janitor = Janitor(pos[0], pos[1], self.tile_size)
-        self.player.direction = "back" 
-        self.player.image = self.player.idle_back
+         print("SPAWNING JANITOR:", pos) 
+         self.janitor = Janitor(pos[0], pos[1],self.tile_size)
+         self.player.direction = "back" 
+         self.player.image = self.player.idle_back
 
     def update(self): 
         self.camera_x = self.player.x - 800 // 2 
@@ -65,10 +65,7 @@ class HotelScene1(BaseScene):
             self.dialogue.update()
 
         if self.janitor: 
-
-            blocked = set()
-            active_walls = []
-            self.janitor.update( self.player.x, self.player.y, blocked, active_walls)
+            self.janitor.update( self.player.x, self.player.y, [],[])
 
         if self.dialogue.is_finished() and not self.moving:
             self.finished = True
@@ -141,4 +138,3 @@ class HotelScene1(BaseScene):
 
     def handle_events(self, events):
         self.dialogue.handle_events(events)
-# spawning janitor issue
