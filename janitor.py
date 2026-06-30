@@ -76,11 +76,11 @@ class Janitor:
         # Which point in the path the janitor is walking to
         self.path_index = 0
 
-        # Recalculate path every 0.5 seconds
+        # Recalculate path timer
         self.path_timer = 0
 
-        self.rect = pygame.Rect(0, 0, 40, 40)
-        self.rect.midbottom = (self.x, self.y)
+        self.rect = pygame.Rect(0, 0,36, 28)
+        self.rect.center = (self.x, self.y)
 
   
     def load_sheet(self, sheet, rows, cols):
@@ -96,8 +96,7 @@ class Janitor:
                 frames.append(frame)
 
         return frames
-
-
+    
     def animate(self):
         self.frame += self.anim_speed
         if self.frame >= len(self.current_frames):
@@ -109,6 +108,78 @@ class Janitor:
         if self.current_frames != new_frames:
             self.current_frames = new_frames
             self.frame = 0  
+
+    # Calculate a new A* path to a target
+    def calculate_path(self, target_x, target_y, blocked):
+
+        now = pygame.time.get_ticks()
+
+        if now - self.path_timer < 200:
+            return
+        
+        start = (
+            int(self.x // self.tile_size),
+            int(self.y // self.tile_size)
+        )
+
+        goal = (
+            int(target_x // self.tile_size),
+            int(target_y // self.tile_size)
+        )
+
+        grid_path = find_path(start, goal, blocked)
+
+        self.path = [
+            (
+                gx * self.tile_size + self.tile_size // 2,
+                gy * self.tile_size + self.tile_size // 2
+            )
+            for gx, gy in grid_path
+        ]
+
+        self.path_index = 1 if len(self.path) > 1 else 0
+        self.path_timer = now
+    
+    # Return the next waypoint on the path
+    def get_next_path_target(self, fallback):
+
+        while self.path and self.path_index < len(self.path):
+            target = self.path[self.path_index]
+
+            distance = (
+                (target[0]-self.x)**2 +
+                (target[1]-self.y)**2
+            ) ** 0.5
+
+            if distance < self.stop_distance:
+                self.path_index += 1
+                continue
+
+            return target
+        return fallback
+
+    # Check if player is visible                    
+    def can_see_player(self, player_x, player_y, active_walls):
+
+        start = (self.x, self.y)
+        end = (player_x, player_y)
+
+        steps = 20
+
+        for i in range(steps + 1):
+
+            t = i / steps
+
+            check_x = start[0] + (end[0] - start[0]) * t
+            check_y = start[1] + (end[1] - start[1]) * t
+
+            point = pygame.Rect(check_x - 2, check_y - 2, 4, 4)
+
+            for wall in active_walls:
+                if point.colliderect(wall):
+                    return False
+                
+        return True
 
     def update(self, player_x, player_y, blocked, active_walls):
         
@@ -133,7 +204,7 @@ class Janitor:
                self.image = pygame.transform.rotate(self.idle_front, self.slip_angle)
                self.x -= 2
                self.y -= 1 
-               self.rect.midbottom = (self.x, self.y)
+               self.rect.center = (self.x, self.y)
 
             else:
                self.image = pygame.transform.rotate(self.idle_front, 90)
@@ -149,110 +220,88 @@ class Janitor:
         distance = (distance_x**2 + distance_y**2) ** 0.5
 
         # Player spotted
-        if distance < self.detect_distance:
+        if (
+            distance < self.detect_distance
+            and self.can_see_player(player_x, player_y, active_walls)
+        ):
+
+            if self.state != "chasing":
+                self.path = []
+                self.path_index = 0
+                self.path_timer = 0
+
             self.state = "chasing"
             self.last_seen = (player_x, player_y)
 
         # Janitor AI behaviour
         # Patrol state: Janitor follows a fixed patrol routed around the hotel
         if self.state == "patrol":
-            target = self.patrol_points[self.current_patrol]
+            patrol_x, patrol_y = self.patrol_points[self.current_patrol]
+            
+            # Calculate an A* path to the current patrol point
+            self.calculate_path(
+                patrol_x,
+                patrol_y,
+                blocked
+            )
+ 
+            # Follow the next waypoint on the path
+            target = self.get_next_path_target(
+                (patrol_x, patrol_y)
+            )
+
 
         # Chase state: Follow the calculated A* path instead of walking directly to the player
         elif self.state == "chasing":
-            now = pygame.time.get_ticks()
+            
+            # Update path towards the player's current position
+            self.calculate_path(
+                player_x,
+                player_y,
+                blocked
+            )
 
-            # Recalculate the path every 0.5 seconds
-            if now - self.path_timer > 500:
-
-                # Convert positions into tile coordinates
-                start = (int(self.x // self.tile_size), int(self.y // self.tile_size))
-                goal = (int(player_x // self.tile_size), int(player_y // self.tile_size))
-
-                # Use blocked tile set instead of rects
-                grid_path = find_path(start, goal, blocked)   # blocked = tile coordinates
-
-                print("Start:", start)
-                print("Goal :", goal)
-                print("Path length:", len(grid_path))
-
-                # Convert back into pixel coordinates for movement
-                new_path = [
-                    (
-                        gx * self.tile_size + self.tile_size // 2, 
-                        gy * self.tile_size + self.tile_size // 2
-                        ) 
-                        for (gx, gy) in grid_path
-                ]
-
-                if new_path != self.path:
-                    self.path = new_path
-
-                    if len(self.path) > 1:
-                        self.path_index = 1
-                    else:
-                        self.path_index = 0
-
-                self.path_timer = now
-
-            # Move toward the next point in the path
-            if self.path and self.path_index < len(self.path):
-                target = self.path[self.path_index]
-
-                print("Current target:", target)
-                print("Current position:", self.x, self.y)
-
-            else:
-                target = (player_x, player_y)
+            target = self.get_next_path_target(
+                (player_x, player_y)
+            )
 
         # Search state: If the player escapes, the janitor moves to the last location where the player was seen
         elif self.state == "search":
-            target = self.last_seen
+            
+            if self.last_seen is None:
+                self.state = "patrol"
+                return
+            
+            # Move to the last place where the player was seen
+            self.calculate_path(
+                self.last_seen[0],
+                self.last_seen[1],
+                blocked
+            )
+
+            target = self.get_next_path_target(
+                self.last_seen
+            )
 
         dx = target[0] - self.x
         dy = target[1] - self.y
 
-        #print(target)
-        #print(dx, dy)
-        print(
-            "Waypoint:",
-            self.path_index,
-            target,
-            "Position:",
-            (round(self.x), round(self.y))
-        )
-
         # Calculate smooth movement towards the current target
         length = (dx * dx + dy * dy) ** 0.5
-
-        print(
-            "Distance:", round(length, 2),
-            " Stop:", self.stop_distance,
-            " Waypoint:", self.path_index
-        )
 
         # Stop moving when close to the target
         if length < self.stop_distance:
 
-            # Chase: reached one waypoint, continue to the next waypoint
-            if self.state == "chasing":
-
-                while self.path_index < len(self.path) - 1:
-                    self.path_index += 1
-
-                    target = self.path[self.path_index]
-
-                    dx = target[0] - self.x
-                    dy = target[1] - self.y
-
-                    if (dx*dx + dy*dy)**0.5 > self.stop_distance:
-                         break
+            # Continue following the current path
+            if self.path and self.path_index < len(self.path) - 1:
+                self.path_index += 1
                 return
-
-            if self.direction == "back":
-                self.image = self.idle_back
-            else:
-                self.image = self.idle_front
+            
+            # Chase keeps recalculating the player's position
+            if self.state == "chasing":
+                self.path = []
+                self.path_index = 0
+                return
 
             # Patrol: move to the next patrol point
             if self.state == "patrol":
@@ -261,12 +310,34 @@ class Janitor:
                 if self.current_patrol >= len(self.patrol_points):
                     self.current_patrol = 0
 
+                # Reset old A* path so the next patrol destination gets a brand new path
+                self.path = []
+                self.path_index = 0
+                self.path_timer = 0
+
+                return
+
             # Search: finished searching
             elif self.state == "search":
 
                 if pygame.time.get_ticks() - self.search_timer > 3000:
                     self.state = "patrol"
 
+                    # Forget where the player was last seen
+                    self.last_seen = None
+
+                # Reset old path so patrol starts with a fresh A* path.
+                self.path = []
+                self.path_index = 0
+                self.path_timer = 0
+
+                return
+            
+            # Idle image
+            if self.direction == "back":
+                self.image = self.idle_back
+            else:
+                self.image = self.idle_front
             return
             
 
@@ -298,53 +369,39 @@ class Janitor:
             move_x = dx / length * self.speed
             move_y = dy / length * self.speed
 
-            print("move_x =", move_x)
-            print("move_y =", move_y)
-
         # Horizontal collision
         janitor_rect = self.rect.copy()
-        janitor_rect.x += move_x
+        janitor_rect.centerx += round(move_x)
 
-        print("Horizontal rect:", janitor_rect)
+        blocked_collision = False
 
-        # Use active_walls (rects) for collision checks
+        # Check if moving horizontally would hit a wall
         for wall in active_walls:
             if janitor_rect.inflate(-4, -4).colliderect(wall):
-                print("Horizontal collision with wall:", wall)
                 blocked_collision = True
                 break
-        else:
-            blocked_collision = False
-
-        print("Horizontal blocked:", blocked_collision)
-
+        
+        # Move horizontally if there is no collision
         if not blocked_collision:
             self.x += move_x
-            self.rect.midbottom = (self.x, self.y)
-        else:
-            print("HORIZONTAL COLLISION!")
+            self.rect.center = (self.x, self.y)
 
         # Vertical collision
         janitor_rect = self.rect.copy()
-        janitor_rect.y += move_y
+        janitor_rect.centery += round(move_y)
 
-        print("Vertical rect:", janitor_rect)
+        blocked_collision = False
 
+        # Check if moving vertically would hit a wall
         for wall in active_walls:
-            if janitor_rect.colliderect(wall):
-                print("Vertical collision with wall:", wall)
+            if janitor_rect.inflate(-4, -4).colliderect(wall):
                 blocked_collision = True
                 break
-        else:
-            blocked_collision = False
 
-        print("Vertical blocked:", blocked_collision)
-
+        # Move vertically if there is no collision
         if not blocked_collision:
             self.y += move_y
-            self.rect.midbottom = (self.x, self.y)
-        else:
-            print("VERTICAL COLLISION!")
+            self.rect.center = (self.x, self.y)
 
         # Update animation
         self.image = self.animate()
@@ -355,10 +412,14 @@ class Janitor:
         if self.state == "chasing":
             distance = ((player_x - self.x) ** 2 + (player_y - self.y) ** 2) ** 0.5
 
-            if distance > self.detect_distance:
+            # Only give up if the player is too far away
+            if distance > self.detect_distance * 2:
                 self.state = "search"
                 self.last_seen = (player_x, player_y)
                 self.search_timer = pygame.time.get_ticks()
+
+                self.path = []
+                self.path_index = 0
 
        # check for trap collisions
         for trap in active_traps[:]:
