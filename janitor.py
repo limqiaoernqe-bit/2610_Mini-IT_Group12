@@ -1,6 +1,6 @@
 import pygame
 
-SCALE_SIZE = (120, 120)
+SCALE_SIZE = (150, 150)
 from weapon import active_traps
 from astar import find_path
 
@@ -9,7 +9,7 @@ class Janitor:
         self.x = x
         self.y = y
         self.tile_size = tile_size
-        self.speed = 2.2
+        self.speed = 1.5
         self.image = pygame.image.load("assets/janitor.png").convert_alpha()
         self.state = "patrol"
         self.defeat = False
@@ -49,14 +49,14 @@ class Janitor:
         self.current_frames = self.walk_front
 
         # Minimum distance to the target before the janitor stops moving
-        self.stop_distance = 24
+        self.stop_distance = 20
 
         # Patrol points
         self.patrol_points = [
-            (1728, 1128),  # Gym hallway left
-            (3120, 1128),  # Gym hallway right
-            (3120, 1512),  # Janitor hallway
-            (1728, 1512)   # Maintenance hallway
+            (1700, 1148),  # change coordinates later
+            (2208, 1056),
+            (2208, 1800),
+            (1632, 1800)
             ]
         
         self.current_patrol = 0
@@ -76,7 +76,7 @@ class Janitor:
         # Which point in the path the janitor is walking to
         self.path_index = 0
 
-        # Recalculate path every 0.2 seconds
+        # Recalculate path every 0.5 seconds
         self.path_timer = 0
 
         self.rect = pygame.Rect(0, 0, 40, 40)
@@ -109,102 +109,8 @@ class Janitor:
         if self.current_frames != new_frames:
             self.current_frames = new_frames
             self.frame = 0  
-<<<<<<< HEAD
-        
-        # if defeats the janitor js stops moving
-        if self.defeat:
-            return 
-         # stops the janitor for 10 seconds
-        if self.state == "stunned":
-            if pygame.time.get_ticks() - self.stun_timer > 10000: 
-                self.state = "chasing"
-            else:
-                return
-                
-    def update(self, player_x, player_y, walls):
-=======
-
-    def calculate_path(self, target_x, target_y, blocked):
-
-        now = pygame.time.get_ticks()
-
-        # Only recalculate every 0.2 seconds
-        if now - self.path_timer < 200:
-            return
-        
-        start = (
-            int(self.x // self.tile_size),
-            int(self.y // self.tile_size)
-        )
-        
-        goal = (
-            int(target_x // self.tile_size),
-            int(target_y // self.tile_size)
-        )
-
-        grid_path = find_path(start, goal, blocked)
-
-        new_path = [
-            (
-                gx * self.tile_size + self.tile_size // 2,
-                gy * self.tile_size + self.tile_size // 2
-            )
-            for (gx, gy) in grid_path
-        ]
-
-        if new_path != self.path:
-            self.path = new_path
-
-            if len(self.path) > 1:
-                self.path_index = 1
-
-            else:
-                self.path_index = 0
-
-        self.path_timer = now
-
-    def get_next_path_target(self, fallback):
-        while self.path and self.path_index < len(self.path):
-            target = self.path[self.path_index]
-
-            distance = (
-                (target[0] - self.x) ** 2 +
-                (target[1] - self.y) ** 2
-            ) ** 0.5
-
-            if distance < self.stop_distance:
-                self.path_index += 1
-                continue
-
-            return target
-        
-        return fallback
-    
-    def can_see_player(self, player_x, player_y, active_walls):
-
-        start = (self.x, self.y)
-        end = (player_x, player_y)
-
-        # Check several points along the line
-        steps = 20
-
-        for i in range(steps + 1):
-
-            t = i / steps
-
-            check_x = start[0] + (end[0] - start[0]) * t
-            check_y = start[1] + (end[1] - start[1]) * t
-
-            point = pygame.Rect(check_x - 2, check_y - 2, 4, 4)
-
-            for wall in active_walls:
-                if point.colliderect(wall):
-                    return False
-                
-        return True
 
     def update(self, player_x, player_y, blocked, active_walls):
->>>>>>> 8746b76 (Update janitor AI and hotel scene)
         
         # if defeats the janitor js stops moving
         if self.defeat:
@@ -227,7 +133,8 @@ class Janitor:
                self.image = pygame.transform.rotate(self.idle_front, self.slip_angle)
                self.x -= 2
                self.y -= 1 
-               self.rect.center = (self.x, self.y)
+               self.rect.midbottom = (self.x, self.y)
+
             else:
                self.image = pygame.transform.rotate(self.idle_front, 90)
             if now > self.lay_until:
@@ -242,57 +149,66 @@ class Janitor:
         distance = (distance_x**2 + distance_y**2) ** 0.5
 
         # Player spotted
-        if (
-            distance < self.detect_distance
-            and self.can_see_player(player_x, player_y, active_walls)
-        ):
+        if distance < self.detect_distance:
             self.state = "chasing"
             self.last_seen = (player_x, player_y)
 
         # Janitor AI behaviour
         # Patrol state: Janitor follows a fixed patrol routed around the hotel
         if self.state == "patrol":
-
-            patrol_x, patrol_y = self.patrol_points[self.current_patrol]
-
-            self.calculate_path(
-                patrol_x,
-                patrol_y,
-                blocked
-            )
-
-            target = self.get_next_path_target(
-                (patrol_x, patrol_y)
-            )
+            target = self.patrol_points[self.current_patrol]
 
         # Chase state: Follow the calculated A* path instead of walking directly to the player
         elif self.state == "chasing":
+            now = pygame.time.get_ticks()
 
-            self.calculate_path(
-                player_x,
-                player_y,
-                blocked
-            )
+            # Recalculate the path every 0.5 seconds
+            if now - self.path_timer > 500:
 
-            target = self.get_next_path_target(
-                (player_x, player_y)
-            )
+                # Convert positions into tile coordinates
+                start = (int(self.x // self.tile_size), int(self.y // self.tile_size))
+                goal = (int(player_x // self.tile_size), int(player_y // self.tile_size))
+
+                # Use blocked tile set instead of rects
+                grid_path = find_path(start, goal, blocked)   # blocked = tile coordinates
+
+                print("Start:", start)
+                print("Goal :", goal)
+                print("Path length:", len(grid_path))
+
+                # Convert back into pixel coordinates for movement
+                new_path = [
+                    (
+                        gx * self.tile_size + self.tile_size // 2, 
+                        gy * self.tile_size + self.tile_size // 2
+                        ) 
+                        for (gx, gy) in grid_path
+                ]
+
+                if new_path != self.path:
+                    self.path = new_path
+
+                    if len(self.path) > 1:
+                        self.path_index = 1
+                    else:
+                        self.path_index = 0
+
+                self.path_timer = now
+
+            # Move toward the next point in the path
+            if self.path and self.path_index < len(self.path):
+                target = self.path[self.path_index]
+
+                print("Current target:", target)
+                print("Current position:", self.x, self.y)
+
+            else:
+                target = (player_x, player_y)
 
         # Search state: If the player escapes, the janitor moves to the last location where the player was seen
         elif self.state == "search":
+            target = self.last_seen
 
-            if self.last_seen is None:
-                self.state = "patrol"
-                return
-            
-            self.calculate_path(
-                self.last_seen[0],
-                self.last_seen[1],
-                blocked
-            )
-
-            target = self.get_next_path_target(self.last_seen)                
-        
         dx = target[0] - self.x
         dy = target[1] - self.y
 
@@ -317,21 +233,21 @@ class Janitor:
 
         # Stop moving when close to the target
         if length < self.stop_distance:
-            
-            if self.path and self.path_index < len(self.path):
-                
-                if self.path_index < len(self.path) - 1:
+
+            # Chase: reached one waypoint, continue to the next waypoint
+            if self.state == "chasing":
+
+                while self.path_index < len(self.path) - 1:
                     self.path_index += 1
 
                     target = self.path[self.path_index]
 
                     dx = target[0] - self.x
                     dy = target[1] - self.y
-                    length = (dx * dx + dy * dy) ** 0.5
 
-                else:
-                    self.path = []
-                    self.path_index = 0
+                    if (dx*dx + dy*dy)**0.5 > self.stop_distance:
+                         break
+                return
 
             if self.direction == "back":
                 self.image = self.idle_back
@@ -345,36 +261,29 @@ class Janitor:
                 if self.current_patrol >= len(self.patrol_points):
                     self.current_patrol = 0
 
-                # Clear any old chase path
-                self.path = []
-                self.path_index = 0
-                self.path_timer = 0
-
             # Search: finished searching
             elif self.state == "search":
 
                 if pygame.time.get_ticks() - self.search_timer > 3000:
                     self.state = "patrol"
 
-                    self.path = []
-                    self.path_index = 0
-                    self.path_timer = 0
-
             return
             
 
-        # Decide animation
-        if abs(dx) > abs(dy):
+        # movement + animation logic (FIXED DIAGONAL ISSUE)
 
+        move_x = 0
+        move_y = 0
+
+        # Prioritize whichever axis has stronger movement
+        if abs(dx) > abs(dy):   # horizontal movement dominates
             if dx > 0:
                 self.direction = "right"
                 self.set_frames(self.walk_right)
             else:
                 self.direction = "left"
                 self.set_frames(self.walk_left)
-
-        else:
-
+        else:                   # vertical movement dominates
             if dy > 0:
                 self.direction = "front"
                 self.set_frames(self.walk_front)
@@ -382,64 +291,62 @@ class Janitor:
                 self.direction = "back"
                 self.set_frames(self.walk_back)
 
-        # Normalized movement
         move_x = 0
         move_y = 0
 
-        if length != 0:
+        if length !=0:
             move_x = dx / length * self.speed
             move_y = dy / length * self.speed
 
-        # Try X movement
-        test_rect = self.rect.copy()
-        test_rect.centerx += move_x
+            print("move_x =", move_x)
+            print("move_y =", move_y)
 
-        hit_wall_x = False
+        # Horizontal collision
+        janitor_rect = self.rect.copy()
+        janitor_rect.x += move_x
 
+        print("Horizontal rect:", janitor_rect)
+
+        # Use active_walls (rects) for collision checks
         for wall in active_walls:
-            if test_rect.colliderect(wall):
-                hit_wall_x = True
+            if janitor_rect.inflate(-4, -4).colliderect(wall):
+                print("Horizontal collision with wall:", wall)
+                blocked_collision = True
                 break
+        else:
+            blocked_collision = False
 
-        if not hit_wall_x:
+        print("Horizontal blocked:", blocked_collision)
+
+        if not blocked_collision:
             self.x += move_x
-            self.rect.centerx = self.x
+            self.rect.midbottom = (self.x, self.y)
+        else:
+            print("HORIZONTAL COLLISION!")
 
-        # Try Y movement
-        test_rect = self.rect.copy()
-        test_rect.centery += move_y
+        # Vertical collision
+        janitor_rect = self.rect.copy()
+        janitor_rect.y += move_y
 
-        hit_wall_y = False
+        print("Vertical rect:", janitor_rect)
 
         for wall in active_walls:
-            if test_rect.colliderect(wall):
-                hit_wall_y = True
+            if janitor_rect.colliderect(wall):
+                print("Vertical collision with wall:", wall)
+                blocked_collision = True
                 break
+        else:
+            blocked_collision = False
 
-        if not hit_wall_y:
+        print("Vertical blocked:", blocked_collision)
+
+        if not blocked_collision:
             self.y += move_y
-            self.rect.centery = self.y
+            self.rect.midbottom = (self.x, self.y)
+        else:
+            print("VERTICAL COLLISION!")
 
-        # Sliding: If X blocked, try Y. If Y blocked, try X.
-        if hit_wall_x or hit_wall_y:
-            slide_rect = self.rect.copy()
-            slide_rect.centerx += move_x
-
-            if not any(slide_rect.colliderect(w) for w in active_walls):
-                self.x += move_x
-                self.rect.centerx = self.x
-
-            slide_rect = self.rect.copy()
-
-            slide_rect.centery += move_y
-
-            if not any(slide_rect.colliderect(w) for w in active_walls):
-                self.y += move_y
-                self.rect.centery = self.y
-
-        # Keep collision box synced
-        self.rect.center = (self.x, self.y)
-
+        # Update animation
         self.image = self.animate()
 
         # Handle AI state changes

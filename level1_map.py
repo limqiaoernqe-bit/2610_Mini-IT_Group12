@@ -665,8 +665,8 @@ while running:
     object_interaction.draw(screen)
 
     if game_over_system.is_game_over():
-    game_over_system.draw(screen)
-
+        game_over_system.draw(screen)
+        
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 result = game_over_system.handle_click(event.pos, player)
