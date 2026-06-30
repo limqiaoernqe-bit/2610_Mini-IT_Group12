@@ -10,7 +10,6 @@ pygame.mixer.init()
 
 active_traps = []
 salt_line = []
-barricade = []
 
 #Sound
 unlock_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "unlock.wav"))
@@ -23,7 +22,7 @@ swing_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "baseballswing.mp3"))
 L2Weapons = {
     #Level 2 Weapons
     "MWpiece1": {
-        "zone": pygame.Rect(1383, 791, 90, 90), #just a placeholder cause im not sure of the exact position
+        "zone": pygame.Rect(12933, 1574, 90, 90), #just a placeholder cause im not sure of the exact position
         "uses": 0,
         "prompt": "R",
         "collected": False,
@@ -75,7 +74,7 @@ L1Weapons = {
         "popup_text": "Salt = Sprinkle across the doorway or drop a salt line to block the ghost temporarily. 3 uses"
     },
     "KitchenKnife":{
-        "zone": pygame.Rect(1918, 328, 50, 50),
+        "zone": pygame.Rect(1918, 328, 95, 95),
         "prompt": "R",
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "KitchenKnife.png")).convert_alpha(), (70,70)),
@@ -143,14 +142,19 @@ def use_weapon(name, player, player_rect, enemies, player_direction, inventory):
     elif name == "BaseballBat":
         swing_sound.play()
         for enemy in enemies:
-            if player_rect.colliderect(enemy.image.get_rect(center=(enemy.x,enemy.y))):
+            if player_rect.colliderect(enemy.rect):
                 enemy.weapon_effect("BaseballBat")
 
     elif name == "MWfull":
         vaccum_sound.play()
         for enemy in enemies:
-            if player_rect.colliderect(enemy.image.get_rect(center=(enemy.x, enemy.y))):
+            if player_rect.colliderect(enemy.rect):
                 enemy.weapon_effect("MWfull")
+
+    elif name == "KitchenKnife":
+        for enemy in enemies:
+            if player_rect.colliderect(enemy.rect):
+                enemy.weapon_effect("KitchenKnife")
  
 # drawing traps
 def draw_traps(screen, camera_x=0, camera_y=0):

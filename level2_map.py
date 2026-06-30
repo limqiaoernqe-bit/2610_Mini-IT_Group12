@@ -529,7 +529,8 @@ while running:
                 blocked.add((x, y))
 
     # Now pass blocked instead of active_walls
-    janitor.update(
+    if not janitor.defeat:
+       janitor.update(
         player.x, 
         player.y,
         blocked,
@@ -539,7 +540,7 @@ while running:
 
 
     # GAME OVER CHECK (janitor collision)
-    if janitor.rect.colliderect(player_rect):
+    if not janitor.defeat and janitor.rect.colliderect(player_rect):
         game_over_system.on_caught(player)
 
 
@@ -593,14 +594,30 @@ while running:
     draw_map(screen, camera_x, camera_y)
 
     # Draw Janitor
-    janitor.draw(screen, camera_x, camera_y)
+    if not janitor.defeat:
+       janitor.draw(screen, camera_x, camera_y)
 
     # Draw player 
     player.draw(screen, camera_x, camera_y)
 
+    if hasattr(janitor, "popup_message") and janitor.popup_message:
+        if pygame.time.get_ticks() - janitor.popup_start_time <   janitor.popup_duration:
+           popup_width = 600
+           popup_height = 150
+           popup_x = (screen_width - popup_width) //2
+           popup_y = (screen_height - popup_height) //2
+           popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
+           pygame.draw.rect(screen, (255,255,255), popup_rect)
+           pygame.draw.rect(screen, (0,0,0), popup_rect, 2)
+           text_surface = font.render(janitor.popup_message, True, (0,0,0))
+           text_rect = text_surface.get_rect(center=popup_rect.center)
+           screen.blit(text_surface, text_rect)
+        else:
+            janitor.popup_message = None
+
 # WEAPON PART
     # hide popup
-    if weapon_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 1000):
+    if weapon_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 5000):
         weapon_popup = False
 
         # Effect when main weapon shows

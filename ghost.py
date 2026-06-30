@@ -12,6 +12,8 @@ class Ghost:
         self.state = "chasing"
         self.defeat = False
         self.blocked_until = 0
+        self.rect = pygame.Rect(0, 0, 100, 150)
+        self.rect.center = (self.x, self.y)
 
 
         # SINGLE SPRITES ONLY
@@ -76,6 +78,7 @@ class Ghost:
         self.x = next_x
         self.y = next_y
         self.rect = self.image.get_rect(center=(self.x, self.y))
+        self.rect.center = (self.x, self.y)
 
 
     def draw(self, screen, camera_x = 0, camera_y = 0):
@@ -89,8 +92,11 @@ class Ghost:
 
     def weapon_effect(self, effect):
         if effect == "MWfull":
-            self.state = "defeat"
+            self.state = "defeated"
             self.defeat = True
+            self.popup_message = "Ghost Defeated!"
+            self.popup_start_time = pygame.time.get_ticks()
+            self.popup_duration = 3000
 
         elif effect == "Salt":
             self.state = "blocked"

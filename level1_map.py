@@ -424,20 +424,14 @@ while running:
                         player.direction,
                         inventory
                     )
-                    salt_rect = pygame.Rect(player.x - 50, player.y, 100, 13)
-                    salt_line.append({"rect": salt_rect, 
+                    if player.held_weapon == "Salt":
+                       salt_rect = pygame.Rect(player.x - 50, player.y, 100, 13)
+                       salt_line.append({"rect": salt_rect, 
                                       "placed_time": pygame.time.get_ticks()})                        
 
 
-    # Player Movement
-    if game_over_system.is_game_over():
-        keys = None
-    else:
-        keys = pygame.key.get_pressed()
-        player.update(keys, active_walls)
-
-    # Active collision walls
-    active_walls = normal_walls.copy() 
+# Active collision walls
+    active_walls = normal_walls.copy()
 
     if security_door.is_locked():
         active_walls += security_walls
@@ -454,26 +448,37 @@ while running:
     if exit_door.is_locked():
         active_walls += exit_door_walls
 
-    player.update(keys, active_walls)
+            # Player Movement
+    if game_over_system.is_game_over():
+        keys = None
+    else:
+        keys = pygame.key.get_pressed()
+        player.update(keys, active_walls)
+    
+    if not game_over_system.is_game_over():
+        keys = pygame.key.get_pressed()
+        player.update(keys, active_walls)
 
     # Move recepionist
-    receptionist.update(
+    if not receptionist.defeat:
+       receptionist.update(
     player.x,
     player.y,
     active_walls,
     )
 
     # Move ghost
-    ghost.update(
+    if not ghost.defeat:
+       ghost.update(
         player.x,
         player.y
     )
 
     # GAME OVER CHECK (ghost collision)
-    if ghost.rect.colliderect(player_rect):
+    if not ghost.defeat and ghost.rect.colliderect(player_rect):
         game_over_system.on_caught(player)
 
-    if receptionist.rect.colliderect(player_rect):
+    if not receptionist.defeat and receptionist.rect.colliderect(player_rect):
         game_over_system.on_caught(player)
 
     # Camera System
@@ -487,25 +492,38 @@ while running:
     draw_map(screen, camera_x, camera_y)
 
     # Draw receptionist
-    receptionist.draw(
+    if not receptionist.defeat:
+       receptionist.draw(
         screen,
         camera_x,
         camera_y
     )
 
     # Draw ghost
-    ghost.draw(
+    if not ghost.defeat:
+       ghost.draw(
         screen,
         camera_x,
         camera_y
     )
+    for enemy in [receptionist, ghost]:
+        if hasattr(enemy, "popup_message") and enemy.popup_message:
+            if pygame.time.get_ticks() - enemy.popup_start_time < enemy.popup_duration:
+               popup_rect = pygame.Rect(400, 300, 300, 100)
+               pygame.draw.rect(screen, (255,255,255), popup_rect)
+               pygame.draw.rect(screen, (0,0,0), popup_rect, 2)
+               text_surface = font.render(enemy.popup_message, True, (0,0,0))
+               text_rect = text_surface.get_rect(center=popup_rect.center)
+               screen.blit(text_surface, text_rect)
+            else:
+               enemy.popup_message = None  
 
     # Draw player 
     player.draw(screen, camera_x, camera_y)
 
 # WEAPON PART
     # hide popup
-    if weapon_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 1000):
+    if weapon_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 5000):
         weapon_popup = False
 
         # Effect when main weapon shows

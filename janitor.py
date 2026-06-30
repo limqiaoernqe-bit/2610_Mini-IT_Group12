@@ -79,7 +79,7 @@ class Janitor:
         # Recalculate path timer
         self.path_timer = 0
 
-        self.rect = pygame.Rect(0, 0,36, 28)
+        self.rect = pygame.Rect(0, 0, 72, 90)
         self.rect.center = (self.x, self.y)
 
   
@@ -186,6 +186,7 @@ class Janitor:
         # if defeats the janitor js stops moving
         if self.defeat:
             return 
+
          # stops the janitor for 10 seconds
         if self.state == "stunned":
             if pygame.time.get_ticks() - self.stun_timer > 10000: 
@@ -440,7 +441,6 @@ class Janitor:
                 self.y - camera_y
             )
         )
-
         screen.blit(self.image, rect)
 
     def weapon_effect (self, effect):
@@ -464,3 +464,6 @@ class Janitor:
         elif effect == "BaseballBat":
             self.state = "defeated"
             self.defeat = True
+            self.popup_message = "Janitor Defeated!"
+            self.popup_start_time = pygame.time.get_ticks()
+            self.popup_duration = 3000

@@ -13,9 +13,13 @@ class Receptionist:
         self.defeat = False
         self.stun_timer = 0
         self.slip_unti = 0 
-
+        self.lay_until = 0
+        self.slip_angle = 0
+        self.original_speed = self.speed
         self.frame = 0
         self.anim_speed = 0.12
+        self.rect = pygame.Rect(0, 0, 100, 150)
+        self.rect.center = (self.x, self.y)
 
         # IDLE
         self.idle_front = pygame.transform.scale(
@@ -191,9 +195,11 @@ class Receptionist:
 
         # check for trap collisions
         for trap in active_traps[:]:
-            if self.image.get_rect(center=(self.x, self.y)).colliderect(trap["rect"]):
+            if self.rect.colliderect(trap["rect"]):
                 self.weapon_effect("BananaPeel")
                 active_traps.remove(trap)
+        
+        self.rect.center = (self.x, self.y)
 
  
     def draw(self, screen, camera_x = 0, camera_y = 0):
@@ -207,7 +213,15 @@ class Receptionist:
 
     def weapon_effect(self, effect):
         if effect == "BananaPeel":
-            self.speed = max(1,self.speed -1)
+            self.state = "slipping"
+            self.slip_until = pygame.time.get_ticks() + 2000
+            self.lay_until = pygame.time.get_ticks() + 40000
+            self.slip_angle = 0
+
+            # Trigger popup message
+            self.popup_message = "The receptionist is now gone for 40 seconds"
+            self.popup_start_time = pygame.time.get_ticks()
+            self.popup_duration = 3000  # show for 3 seconds
 
         elif effect == "CleaningSpray":
             self.state = "stunned" 
@@ -216,5 +230,8 @@ class Receptionist:
             self.speed = max(0.5, self.speed - 0.5)
 
         elif effect == "KitchenKnife":
-            self.state = "defeated" 
+            self.state = "defeated"
             self.defeat = True
+            self.popup_message = "Receptionist Defeated!"
+            self.popup_start_time = pygame.time.get_ticks()
+            self.popup_duration = 3000  

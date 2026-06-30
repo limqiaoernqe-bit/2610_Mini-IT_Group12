@@ -17,7 +17,7 @@ class ObjectInteraction:
         
         self.zones = {
             "box": {
-                "zone": pygame.Rect(1203, 1499, 56, 48) , "collected": False # 210 key in janitor's room
+                "zone": pygame.Rect(291, 2350, 56, 48) , "collected": False # 210 key 
             },
             "toolbox": {
 
