@@ -29,6 +29,7 @@ class Ghost:
 
         self.stop_distance = 40
 
+        self.rect = self.image.get_rect(center=(self.x, self.y))
 
     def update(self, player_x, player_y):
 
@@ -77,15 +78,13 @@ class Ghost:
         self.y = next_y
         self.rect = self.image.get_rect(center=(self.x, self.y))
 
+        # Update rect to new position
+        self.rect = self.image.get_rect(center=(self.x, self.y))
 
     def draw(self, screen, camera_x = 0, camera_y = 0):
-        rect = self.image.get_rect(
-            center=(
-                self.x - camera_x, 
-                self.y - camera_y
-            )
-        )
-        screen.blit(self.image, rect)
+        # Use the existing self.rect, offset by camera
+        draw_rect = self.rect.move(-camera_x, -camera_y)
+        screen.blit(self.image, draw_rect)
 
     def weapon_effect(self, effect):
         if effect == "MWfull":
