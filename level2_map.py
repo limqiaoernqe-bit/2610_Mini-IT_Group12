@@ -131,8 +131,8 @@ player = Player()
 
 # Janitor spawn position
 janitor = Janitor(
-    1700,
-    1148,
+    1728,
+    1128,
     TILE_SIZE
 )
 
@@ -798,4 +798,3 @@ while running:
 
 pygame.quit()
 subprocess.run(["python", "level1_map.py"])
-                    
