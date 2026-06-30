@@ -1,2 +1,6 @@
 __pycache__/ 
 *.pyc 
+__pycache__/
+*.pyc
+save_inventory.json
+save_inventory.json

@@ -25,7 +25,7 @@ class ObjectInteraction:
                 "zone": pygame.Rect(2631, 2213, 211, 169) # maintanence room
             },
             "flashlight": {
-                "zone": pygame.Rect(2501, 2261, 129, 117) # maintanence room
+                "zone": pygame.Rect(2543, 2226, 129, 117) # maintanence room
 
             },
             "locker": {

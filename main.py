@@ -17,7 +17,8 @@ pygame.display.set_caption("Escape Code")
 clock = pygame.time.Clock()
 
 # START GAME
-scene_manager = SceneManager(MenuScene())
+scene_manager = SceneManager()
+scene_manager.current_scene = MenuScene()
 
 run = True
 
@@ -31,16 +32,21 @@ while run:
     # scene system
     scene_manager.handle_events(events)
     scene_manager.update()
-    # If HotelScene1 finished, quit and launch level 2
-    if isinstance(scene_manager.current_scene, HotelScene1) and getattr(scene_manager.current_scene, "finished", False):
-        pygame.quit()
-        subprocess.run(["python", "level2_map.py"])
-        break 
-    
+
+    current = scene_manager.current_scene
+
+    # HOTEL SCENE → LEVEL 2 TRANSITION
+    if isinstance(current, HotelScene1) and getattr(current, "finished", False):
+        run = False
+        break
+
     scene_manager.draw(screen)
 
     pygame.display.flip()
     clock.tick(60)
 
 pygame.quit()
+
+# launch level 2 AFTER pygame closes (safer)
+subprocess.run([sys.executable, "level2_map.py"])
 sys.exit()

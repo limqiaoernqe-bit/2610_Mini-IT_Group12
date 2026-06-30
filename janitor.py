@@ -49,14 +49,15 @@ class Janitor:
         self.current_frames = self.walk_front
 
         # Minimum distance to the target before the janitor stops moving
-        self.stop_distance = 20
+        self.stop_distance = 50
 
         # Patrol points
         self.patrol_points = [
-            (1700, 1148),  # change coordinates later
-            (2208, 1056),
-            (2208, 1800),
-            (1632, 1800)
+            (2976, 960),  # change coordinates later
+            (1824, 528),
+            (1680, 1152),
+            (1680, 2352),
+            (2592, 2544)
             ]
         
         self.current_patrol = 0
@@ -78,6 +79,10 @@ class Janitor:
 
         # Recalculate path timer
         self.path_timer = 0
+
+        # Used to detect when the janitor is stuck
+        self.last_position = (self.x, self.y)
+        self.stuck_timer = pygame.time.get_ticks()
 
         self.rect = pygame.Rect(0, 0, 72, 90)
         self.rect.center = (self.x, self.y)
@@ -114,7 +119,7 @@ class Janitor:
 
         now = pygame.time.get_ticks()
 
-        if now - self.path_timer < 200:
+        if now - self.path_timer < 300:
             return
         
         start = (
@@ -137,7 +142,7 @@ class Janitor:
             for gx, gy in grid_path
         ]
 
-        self.path_index = 1 if len(self.path) > 1 else 0
+        self.path_index = 0
         self.path_timer = now
     
     # Return the next waypoint on the path
@@ -383,7 +388,7 @@ class Janitor:
 
         # Check if moving horizontally would hit a wall
         for wall in active_walls:
-            if janitor_rect.inflate(-4, -4).colliderect(wall):
+            if janitor_rect.inflate(-10, -10).colliderect(wall):
                 blocked_collision = True
                 break
         
@@ -400,7 +405,7 @@ class Janitor:
 
         # Check if moving vertically would hit a wall
         for wall in active_walls:
-            if janitor_rect.inflate(-4, -4).colliderect(wall):
+            if janitor_rect.inflate(-10, -10).colliderect(wall):
                 blocked_collision = True
                 break
 
@@ -411,6 +416,20 @@ class Janitor:
 
         # Update animation
         self.image = self.animate()
+
+        # Detect if the janitor is stuck against a wall
+        current_pos = (round(self.x), round(self.y))
+
+        if current_pos == self.last_position:
+             if pygame.time.get_ticks() - self.stuck_timer > 500:
+                # Force A* to generate a new path
+                self.path = []
+                self.path_index = 0
+                self.path_timer = 0
+                self.stuck_timer = pygame.time.get_ticks()
+        else:
+            self.last_position = current_pos
+            self.stuck_timer = pygame.time.get_ticks()     
 
         # Handle AI state changes
 

@@ -17,7 +17,8 @@ from scenes.hotelscene2 import on_chloe_saved, on_jay_saved, scene_manager
 from gameover_system import GameOverSystem
 
 game_over_system = GameOverSystem(lives=3, spawn_point=(2160, 2160))  # maintenance room
-
+heart_img = pygame.image.load("assets/heart.png").convert_alpha()
+heart_img = pygame.transform.scale(heart_img, (50, 50))
 
 
 # Weapon Popup system
@@ -131,8 +132,8 @@ player = Player()
 
 # Janitor spawn position
 janitor = Janitor(
-    1700,
-    1148,
+    2976,
+    960,
     TILE_SIZE
 )
 
@@ -511,7 +512,8 @@ while running:
         active_walls += room206_walls
 
     # Move player
-    player.update(keys, active_walls)
+    if keys is not None:
+        player.update(keys, active_walls)
 
     # Convert collision rectangles into blocked grid tiles
     blocked = set()
@@ -519,13 +521,13 @@ while running:
     for wall in active_walls:
         
         left = wall.left // TILE_SIZE
-        right = wall.right // TILE_SIZE
+        right = (wall.right - 1) // TILE_SIZE
 
         top = wall.top // TILE_SIZE
-        bottom = wall.bottom // TILE_SIZE
+        bottom = (wall.bottom- 1) // TILE_SIZE
 
-        for y in range(top, bottom):
-            for x in range(left, right):
+        for y in range(top, bottom + 1):
+            for x in range(left, right + 1):
                 blocked.add((x, y))
 
     # Now pass blocked instead of active_walls
@@ -534,7 +536,7 @@ while running:
         player.x, 
         player.y,
         blocked,
-        active_walls
+        active_walls,
         )
 
 
@@ -614,6 +616,8 @@ while running:
            screen.blit(text_surface, text_rect)
         else:
             janitor.popup_message = None
+    for i in range(game_over_system.lives):
+        screen.blit(heart_img, (20 + i * 35,20))
 
 # WEAPON PART
     # hide popup
@@ -843,4 +847,4 @@ while running:
 
 pygame.quit()
 subprocess.run(["python", "level1_map.py"])
-                    
+                     

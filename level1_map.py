@@ -18,14 +18,21 @@ import json
 try:
     with open("save_inventory.json", "r") as f:
         save_data = json.load(f)
+
         for item in save_data.get("items", []):
             inventory.add_item(item)
 
-        for name,uses in save_data.get("uses", {}).items():
+        for name, uses in save_data.get("uses", {}).items():
             if name in Weapons and uses is not None:
                 Weapons[name]["uses"] = uses
-except FileNotFoundError:
-    pass
+
+except (FileNotFoundError, json.JSONDecodeError):
+    save_data = {}
+
+heart_img = pygame.image.load("assets/heart.png").convert_alpha()
+heart_img = pygame.transform.scale(heart_img, (50, 50))
+
+
 
 # Weapon Popup system
 weapon_popup = False
@@ -324,7 +331,10 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+        if event.type == pygame.KEYDOWN:
+
             if event.key == pygame.K_r:
+                
                 
                 # Pick up exit door key
                 if (
@@ -335,14 +345,14 @@ while running:
                     exit_key_collected = True
 
                 # Go back to level 2                
-                if stairs_to_level2.check_collision(player_rect):
+                elif stairs_to_level2.check_collision(player_rect):
                     print("Going back to Level 2...")
 
                     # Close level 1 and open level 2
                     pygame.quit()
-                    subprocess.run(["python", "level2_map.py.py", "stairs"])
+                    subprocess.run(["python", "level2_map.py", "stairs"])
                     running = False
-                
+                else:                
                     object_interaction.try_interact(player_rect)
 
                 # puzzle
@@ -430,7 +440,15 @@ while running:
                                       "placed_time": pygame.time.get_ticks()})                        
 
 
+    # Player Movement
+    if game_over_system.is_game_over():
+        keys = None
+    else:
+        keys = pygame.key.get_pressed()
+
 # Active collision walls
+    active_walls = normal_walls.copy()
+    # Active collision walls
     active_walls = normal_walls.copy()
 
     if security_door.is_locked():
@@ -459,13 +477,18 @@ while running:
         keys = pygame.key.get_pressed()
         player.update(keys, active_walls)
 
-    # Move recepionist
+    
+
+    # Move recepionist and ghost
+    if not game_over_system.is_game_over():
+
     if not receptionist.defeat:
-       receptionist.update(
-    player.x,
-    player.y,
-    active_walls,
-    )
+           receptionist.update(
+            player.x,
+            player.y,
+            active_walls,
+            barricade
+        )
 
     # Move ghost
     if not ghost.defeat:
@@ -475,8 +498,24 @@ while running:
     )
 
     # GAME OVER CHECK (ghost collision)
-    if not ghost.defeat and ghost.rect.colliderect(player_rect):
-        game_over_system.on_caught(player)
+    ghost_rect = pygame.Rect(
+    ghost.x - 40,
+    ghost.y - 40,
+    80,
+    80
+    )
+
+    receptionist_rect = pygame.Rect(
+        receptionist.x - 20,
+        receptionist.y - 40,
+        40,
+        40
+    )
+
+    if not game_over_system.is_game_over():
+
+        if not ghost.defeat and ghost_rect.colliderect(player_rect):
+            game_over_system.on_caught(player)
 
     if not receptionist.defeat and receptionist.rect.colliderect(player_rect):
         game_over_system.on_caught(player)
@@ -520,6 +559,9 @@ while running:
 
     # Draw player 
     player.draw(screen, camera_x, camera_y)
+
+    for i in range(game_over_system.lives):
+        screen.blit(heart_img, (20 + i * 55, 20))
 
 # WEAPON PART
     # hide popup
@@ -693,16 +735,30 @@ while running:
                 message = "The door is locked. Please input a code to unlock."
 
             elif room == security_room and room.locked:
-                message = "Security Room is locked. Find a Security Badge."
+
+                if SECURITY_BADGE in inventory.items:
+                    message = "Security Room is locked. Press E to unlock."
+                else:
+                    message = "Security Room is locked. Find a Security Badge."
+
+            elif room == room_117 and room.locked:
+                if ROOM117_KEY in inventory.items:
+                    message = "Room 117 is locked. Press E to unlock."
+                else:
+                    message = "Room 117 is locked. Please find the Room 117 key."
 
             elif room == exit_trigger and room.locked:
-                message = "The exit is locked. Please find the exit key to escape."
+
+                if EXIT_DOOR_KEY in inventory.items:
+                    message = "The exit is locked. Press E to unlock."
+                else:
+                    message = "The exit is locked. Please find the exit key to escape."
 
             elif room == stairs_to_level2:
                 message = "Press R to return to Level 2"
 
             elif room.locked:
-                message = f"{room.message} is locked. Please find a key."
+                message = f"{room.message} is locked. Please find a key.Press E to unlock"
 
             else:
                 message = room.message
@@ -718,23 +774,28 @@ while running:
     object_interaction.draw(screen)
 
     if game_over_system.is_game_over():
+
         game_over_system.draw(screen)
-        
+
         for event in pygame.event.get():
+
+            if event.type == pygame.QUIT:
+                running = False
+
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+
                 result = game_over_system.handle_click(event.pos, player)
 
                 if result == "retry":
-                    player.x, player.y = game_over_system.spawn_point
+                    game_over_system.reset(player)
 
                 elif result == "quit":
                     pygame.quit()
-                    subprocess.run(["python", "main.py"])
+                    subprocess.run(["python3", "main.py"])
                     exit()
 
         pygame.display.flip()
         continue
-
     pygame.display.flip()
 
 pygame.quit()

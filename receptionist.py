@@ -53,6 +53,7 @@ class Receptionist:
 
         self.stop_distance = 40
 
+        self.rect = self.image.get_rect(center=(self.x, self.y))
   
     def load_sheet(self, sheet, rows, cols):
         frames = []
@@ -201,15 +202,11 @@ class Receptionist:
         
         self.rect.center = (self.x, self.y)
 
+        self.rect = self.image.get_rect(center=(self.x, self.y))
  
     def draw(self, screen, camera_x = 0, camera_y = 0):
-        rect = self.image.get_rect(
-            midbottom=(
-                self.x - camera_x, 
-                self.y - camera_y
-            )
-        )
-        screen.blit(self.image, rect)
+        draw_rect = self.rect.move(-camera_x, -camera_y)
+        screen.blit(self.image, draw_rect)
 
     def weapon_effect(self, effect):
         if effect == "BananaPeel":
