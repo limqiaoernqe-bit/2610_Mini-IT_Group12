@@ -132,8 +132,8 @@ player = Player()
 
 # Janitor spawn position
 janitor = Janitor(
-    1700,
-    1148,
+    2976,
+    960,
     TILE_SIZE
 )
 
@@ -512,7 +512,8 @@ while running:
         active_walls += room206_walls
 
     # Move player
-    player.update(keys, active_walls)
+    if keys is not None:
+        player.update(keys, active_walls)
 
     # Convert collision rectangles into blocked grid tiles
     blocked = set()
@@ -520,13 +521,13 @@ while running:
     for wall in active_walls:
         
         left = wall.left // TILE_SIZE
-        right = wall.right // TILE_SIZE
+        right = (wall.right - 1) // TILE_SIZE
 
         top = wall.top // TILE_SIZE
-        bottom = wall.bottom // TILE_SIZE
+        bottom = (wall.bottom- 1) // TILE_SIZE
 
-        for y in range(top, bottom):
-            for x in range(left, right):
+        for y in range(top, bottom + 1):
+            for x in range(left, right + 1):
                 blocked.add((x, y))
 
     # Now pass blocked instead of active_walls
@@ -534,7 +535,7 @@ while running:
         player.x, 
         player.y,
         blocked,
-        active_walls
+        active_walls,
         )
 
 

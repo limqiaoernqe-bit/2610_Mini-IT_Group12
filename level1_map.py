@@ -345,14 +345,18 @@ while running:
                     exit_key_collected = True
 
                 # Go back to level 2                
-                if stairs_to_level2.check_collision(player_rect):
+                elif stairs_to_level2.check_collision(player_rect):
                     print("Going back to Level 2...")
 
                     # Close level 1 and open level 2
                     pygame.quit()
+<<<<<<< HEAD
                     subprocess.run(["python3", "level2_map.py", "stairs"])
+=======
+                    subprocess.run(["python", "level2_map.py", "stairs"])
+>>>>>>> 9bb184d (Fixed some issues)
                     running = False
-                
+                else:                
                     object_interaction.try_interact(player_rect)
 
                 # puzzle
@@ -439,6 +443,15 @@ while running:
                                       "placed_time": pygame.time.get_ticks()})                        
 
 
+<<<<<<< HEAD
+=======
+    # Player Movement
+    if game_over_system.is_game_over():
+        keys = None
+    else:
+        keys = pygame.key.get_pressed()
+
+>>>>>>> 9bb184d (Fixed some issues)
     # Active collision walls
     active_walls = normal_walls.copy()
 
@@ -457,6 +470,11 @@ while running:
     if exit_door.is_locked():
         active_walls += exit_door_walls
 
+<<<<<<< HEAD
+=======
+    if keys is not None:
+        player.update(keys, active_walls)
+>>>>>>> 9bb184d (Fixed some issues)
 
     # Player Movement
     if game_over_system.is_game_over():
@@ -707,16 +725,30 @@ while running:
                 message = "The door is locked. Please input a code to unlock."
 
             elif room == security_room and room.locked:
-                message = "Security Room is locked. Find a Security Badge."
+
+                if SECURITY_BADGE in inventory.items:
+                    message = "Security Room is locked. Press E to unlock."
+                else:
+                    message = "Security Room is locked. Find a Security Badge."
+
+            elif room == room_117 and room.locked:
+                if ROOM117_KEY in inventory.items:
+                    message = "Room 117 is locked. Press E to unlock."
+                else:
+                    message = "Room 117 is locked. Please find the Room 117 key."
 
             elif room == exit_trigger and room.locked:
-                message = "The exit is locked. Please find the exit key to escape."
+
+                if EXIT_DOOR_KEY in inventory.items:
+                    message = "The exit is locked. Press E to unlock."
+                else:
+                    message = "The exit is locked. Please find the exit key to escape."
 
             elif room == stairs_to_level2:
                 message = "Press R to return to Level 2"
 
             elif room.locked:
-                message = f"{room.message} is locked. Please find a key."
+                message = f"{room.message} is locked. Please find a key.Press E to unlock"
 
             else:
                 message = room.message
