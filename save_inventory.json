@@ -1,2 +1,6 @@
+<<<<<<< HEAD
 {"items": ["JANITOR_KEY", "MWpiece1", "BananaPeel"], "uses": {"MWpiece1": 0, "BananaPeel": 2}}
 {"items": [], "uses": {}}
+=======
+{"items": ["JANITOR_KEY", "BananaPeel"], "uses": {"BananaPeel": 3}}
+>>>>>>> 0f043af (Updated code)
