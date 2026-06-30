@@ -524,9 +524,6 @@ while running:
             for x in range(left, right):
                 blocked.add((x, y))
 
-    # Just for testing
-    print("Blocked tiles:", len(blocked))
-
     # Now pass blocked instead of active_walls
     janitor.update(
         player.x, 
@@ -670,7 +667,13 @@ while running:
 
     # Press E to unlock Room 210 (Jay's room)
     if room_210.check_collision(player_rect):
-        if keys[pygame.K_e]and room210_door.is_locked():
+
+        # Only try to unlock if the player actually has the key
+        if (
+            ROOM_210_KEY in inventory.items
+            and keys[pygame.K_e]
+            and room210_door.is_locked()
+        ):
             inventory.use_item(
                 ROOM_210_KEY,
                 room210_door
@@ -681,7 +684,11 @@ while running:
     # Press E to unlock Janitor Room
     if janitor_room.check_collision(player_rect):
         
-        if keys[pygame.K_e]:
+        if (
+            JANITOR_KEY in inventory.items
+            and keys[pygame.K_e]
+            and janitor_door.is_locked()
+        ):
             inventory.use_item(
                 JANITOR_KEY,
                 janitor_door
@@ -690,7 +697,11 @@ while running:
     # Press E to unlock Room 206 (Chloe's room)
     if room_206.check_collision(player_rect):
         
-        if keys[pygame.K_e] and room206_door.is_locked():
+        if (
+            ROOM_206_KEY in inventory.items
+            and keys[pygame.K_e]
+            and room206_door.is_locked()
+        ):
             inventory.use_item(
                 ROOM_206_KEY,
                 room206_door
@@ -751,7 +762,27 @@ while running:
                 message = "Defeat the janitor to unlock the stairs."
 
             elif room.locked:
-                message = f"{room.message} is locked. Please find a key. Press E to unlock."
+                
+                # Room 210
+                if room == room_210:
+                    if ROOM_210_KEY in inventory.items:
+                        message = "Room 210 is locked. Press E to unlock."
+                    else:
+                        message = "Room 210 is locked. Please find the Room 210 key."
+
+                # Room 206
+                elif room == room_206:
+                    if ROOM_206_KEY in inventory.items:
+                        message = "Room 206 is locked. Press E to unlock."
+                    else:
+                        message = "Room 206 is locked. Please find the Room 206 key."
+
+                # Janitor room
+                elif room == janitor_room:
+                    if JANITOR_KEY in inventory.items:
+                        message = "Janitor Room is locked. Press E to unlock."
+                    else:
+                        message = "Janitor Room is locked. Please find the Janitor key."
 
             else:
                 message = room.message
