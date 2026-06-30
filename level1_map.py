@@ -613,11 +613,6 @@ while running:
     room116_117.locked = room116_117_door.is_locked()
     exit_trigger.locked = exit_door.is_locked()
 
-    # Ending scene after exit the place
-        
-
-
-
     # Room labels
     for room in room_triggers:
 
