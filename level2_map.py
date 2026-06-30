@@ -131,8 +131,8 @@ player = Player()
 
 # Janitor spawn position
 janitor = Janitor(
-    1728,
-    1128,
+    1700,
+    1148,
     TILE_SIZE
 )
 
@@ -507,12 +507,6 @@ while running:
         active_walls += room206_walls
 
     # Move player
-<<<<<<< HEAD
-    if not game_over_system.is_game_over():
-        player.update(keys, active_walls)
-        janitor.update(
-        player.x,
-=======
     player.update(keys, active_walls)
 
     # Convert collision rectangles into blocked grid tiles
@@ -536,7 +530,6 @@ while running:
     # Now pass blocked instead of active_walls
     janitor.update(
         player.x, 
->>>>>>> 8746b76 (Update janitor AI and hotel scene)
         player.y,
         blocked,
         active_walls
@@ -798,3 +791,4 @@ while running:
 
 pygame.quit()
 subprocess.run(["python", "level1_map.py"])
+                    
