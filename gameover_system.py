@@ -21,19 +21,20 @@ class GameOverSystem:
             "assets/game_over.png"
         ).convert_alpha()
 
+    def reset_player(self, player):
+        player.x, player.y = self.spawn_point
+
     # ---------------------------
     # GAME LOGIC
     # ---------------------------
     def on_caught(self, player):
-        if self.game_over:
-            return
-
         self.lives -= 1
 
-        if self.lives > 0:
-            player.x, player.y = self.last_checkpoint
-        else:
+        if self.lives <= 0:
             self.game_over = True
+            return
+
+        self.reset_player(player)
 
     def set_checkpoint(self, pos):
         self.last_checkpoint = pos

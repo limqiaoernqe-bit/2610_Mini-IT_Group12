@@ -17,7 +17,8 @@ from scenes.hotelscene2 import on_chloe_saved, on_jay_saved, scene_manager
 from gameover_system import GameOverSystem
 
 game_over_system = GameOverSystem(lives=3, spawn_point=(2160, 2160))  # maintenance room
-
+heart_img = pygame.image.load("assets/heart.png").convert_alpha()
+heart_img = pygame.transform.scale(heart_img, (50, 50))
 
 
 # Weapon Popup system
@@ -598,6 +599,9 @@ while running:
     # Draw player 
     player.draw(screen, camera_x, camera_y)
 
+    for i in range(game_over_system.lives):
+        screen.blit(heart_img, (20 + i * 35,20))
+
 # WEAPON PART
     # hide popup
     if weapon_popup and (pygame.time.get_ticks()- popup_start_time > popup_duration * 1000):
@@ -826,4 +830,4 @@ while running:
 
 pygame.quit()
 subprocess.run(["python", "level1_map.py"])
-                    
+                     

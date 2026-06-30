@@ -18,14 +18,21 @@ import json
 try:
     with open("save_inventory.json", "r") as f:
         save_data = json.load(f)
+
         for item in save_data.get("items", []):
             inventory.add_item(item)
 
-        for name,uses in save_data.get("uses", {}).items():
+        for name, uses in save_data.get("uses", {}).items():
             if name in Weapons and uses is not None:
                 Weapons[name]["uses"] = uses
-except FileNotFoundError:
-    pass
+
+except (FileNotFoundError, json.JSONDecodeError):
+    save_data = {}
+
+heart_img = pygame.image.load("assets/heart.png").convert_alpha()
+heart_img = pygame.transform.scale(heart_img, (50, 50))
+
+
 
 # Weapon Popup system
 weapon_popup = False
@@ -324,7 +331,10 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+        if event.type == pygame.KEYDOWN:
+
             if event.key == pygame.K_r:
+                
                 
                 # Pick up exit door key
                 if (
@@ -340,7 +350,7 @@ while running:
 
                     # Close level 1 and open level 2
                     pygame.quit()
-                    subprocess.run(["python", "level2_map.py.py", "stairs"])
+                    subprocess.run(["python3", "level2_map.py", "stairs"])
                     running = False
                 
                     object_interaction.try_interact(player_rect)
@@ -429,15 +439,8 @@ while running:
                                       "placed_time": pygame.time.get_ticks()})                        
 
 
-    # Player Movement
-    if game_over_system.is_game_over():
-        keys = None
-    else:
-        keys = pygame.key.get_pressed()
-        player.update(keys, active_walls)
-
     # Active collision walls
-    active_walls = normal_walls.copy() 
+    active_walls = normal_walls.copy()
 
     if security_door.is_locked():
         active_walls += security_walls
@@ -454,27 +457,53 @@ while running:
     if exit_door.is_locked():
         active_walls += exit_door_walls
 
-    player.update(keys, active_walls)
 
-    # Move recepionist
-    receptionist.update(
-    player.x,
-    player.y,
-    active_walls,
-    )
+    # Player Movement
+    if game_over_system.is_game_over():
+        keys = None
+    else:
+        keys = pygame.key.get_pressed()
+        player.update(keys, active_walls)
 
-    # Move ghost
-    ghost.update(
-        player.x,
-        player.y
-    )
+    
+
+    # Move recepionist and ghost
+    if not game_over_system.is_game_over():
+
+        receptionist.update(
+            player.x,
+            player.y,
+            active_walls,
+            barricade
+        )
+
+        ghost.update(
+            player.x,
+            player.y
+        )
 
     # GAME OVER CHECK (ghost collision)
-    if ghost.rect.colliderect(player_rect):
-        game_over_system.on_caught(player)
+    ghost_rect = pygame.Rect(
+    ghost.x - 40,
+    ghost.y - 40,
+    80,
+    80
+    )
 
-    if receptionist.rect.colliderect(player_rect):
-        game_over_system.on_caught(player)
+    receptionist_rect = pygame.Rect(
+        receptionist.x - 20,
+        receptionist.y - 40,
+        40,
+        40
+    )
+
+    if not game_over_system.is_game_over():
+
+        if ghost_rect.colliderect(player_rect):
+            game_over_system.on_caught(player)
+
+        if receptionist_rect.colliderect(player_rect):
+            game_over_system.on_caught(player)
 
     # Camera System
     camera_x = player.x - screen_width // 2
@@ -502,6 +531,9 @@ while running:
 
     # Draw player 
     player.draw(screen, camera_x, camera_y)
+
+    for i in range(game_over_system.lives):
+        screen.blit(heart_img, (20 + i * 55, 20))
 
 # WEAPON PART
     # hide popup
@@ -700,23 +732,28 @@ while running:
     object_interaction.draw(screen)
 
     if game_over_system.is_game_over():
+
         game_over_system.draw(screen)
-        
+
         for event in pygame.event.get():
+
+            if event.type == pygame.QUIT:
+                running = False
+
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+
                 result = game_over_system.handle_click(event.pos, player)
 
                 if result == "retry":
-                    player.x, player.y = game_over_system.spawn_point
+                    game_over_system.reset(player)
 
                 elif result == "quit":
                     pygame.quit()
-                    subprocess.run(["python", "main.py"])
+                    subprocess.run(["python3", "main.py"])
                     exit()
 
         pygame.display.flip()
         continue
-
     pygame.display.flip()
 
 pygame.quit()
