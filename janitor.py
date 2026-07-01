@@ -247,6 +247,12 @@ class Janitor:
             self.state = "chasing"
             self.last_seen = (player_x, player_y)
 
+        # Lost sight of the player
+        elif self.state == "chasing":
+
+            self.state = "search"
+            self.search_timer = pygame.time.get_ticks()
+
         # Janitor AI behaviour
         # Patrol state: Janitor follows a fixed patrol routed around the hotel
         if self.state == "patrol":
