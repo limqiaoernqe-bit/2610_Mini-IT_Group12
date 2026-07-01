@@ -550,7 +550,7 @@ while running:
 
     # Unlock stairs when janitor is defeated
     if janitor.defeat:
-        stairs_trigger.locked = False
+        stairs_trigger.locked = True
 
     # Camera System
     camera_x = player.x - screen_width // 2
