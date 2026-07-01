@@ -240,7 +240,7 @@ room_211 = RoomTrigger(
 stairs_trigger = RoomTrigger(
     pygame.Rect(2475, 2776, 241, 104),
     "Stairs", 
-    locked = False
+    locked = True
 )
 
 # Spawn position logic
@@ -326,6 +326,7 @@ def draw_map(surface, camera_x, camera_y):
 
 # Main Game Loop
 running = True
+go_to_level1 = False
 
 while running:
 
@@ -406,6 +407,8 @@ while running:
                             }
                             with open("save_inventory.json", "w") as f:
                                  json.dump(save_data, f)
+
+                        go_to_level1 = True
                         running = False
                         break
                     else:
@@ -550,7 +553,7 @@ while running:
 
     # Unlock stairs when janitor is defeated
     if janitor.defeat:
-        stairs_trigger.locked = True
+        stairs_trigger.locked = False
 
     # Camera System
     camera_x = player.x - screen_width // 2
@@ -848,5 +851,7 @@ while running:
     pygame.display.flip()
 
 pygame.quit()
-subprocess.run(["python", "level1_map.py"])
+
+if go_to_level1:
+    subprocess.run(["python", "level1_map.py"])
                      
