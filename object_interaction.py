@@ -24,10 +24,6 @@ class ObjectInteraction:
 
                 "zone": pygame.Rect(2572, 2210, 211, 169) # maintanence room
             },
-            "flashlight": {
-                "zone": pygame.Rect(2543, 2226, 129, 117) # maintanence room
-
-            },
             "locker": {
                 "zone": pygame.Rect(3062, 2186, 120,120 ), "collected": False # badge in janitor's locker
             },

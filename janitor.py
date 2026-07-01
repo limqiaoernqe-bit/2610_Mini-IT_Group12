@@ -17,6 +17,8 @@ class Janitor:
         self.slip_until = 0
         self.rect = pygame.Rect(0,0, 100,150)
         self.rect.center = (self.x, self.y)
+        self.footstep_sound = pygame.mixer.Sound("assets/footsteps.wav")
+        self.footstep_channel = None
 
         self.frame = 0
         self.anim_speed = 0.12
@@ -235,6 +237,13 @@ class Janitor:
 
         distance = (distance_x**2 + distance_y**2) ** 0.5
 
+        # footsteps volume based on distance 
+        if self.footstep_channel:
+            max_distance = 1000
+            volume = 1.0 - min(distance, max_distance) / max_distance
+            volume = max(0.0, min(1.0, volume))
+            self.footstep_channel.set_volume(volume)
+
         # Player spotted
         if (
             distance < self.detect_distance
@@ -390,6 +399,21 @@ class Janitor:
         if length !=0:
             move_x = dx / length * self.speed
             move_y = dy / length * self.speed
+
+        # footsteps sound
+        if self.state in ["patrol", "chasing", "search"] and not self.defeat:
+            if (abs(move_x) > 0 or abs(move_y) > 0):
+                if self.footstep_channel is None or not self.footstep_channel.get_busy():
+                    self.footstep_channel = self.footstep_sound.play(-1)
+            else:
+                if self.footstep_channel:
+                    self.footstep_channel.stop()
+                    self.footstep_channel = None
+        else:
+            # stop footsteps if janitor is not walking 
+            if self.footstep_channel:
+                self.footstep_channel.stop()
+                self.footstep_channel = None 
 
         # Horizontal collision
         janitor_rect = self.rect.copy()
