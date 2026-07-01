@@ -49,7 +49,7 @@ class Janitor:
         self.current_frames = self.walk_front
 
         # Minimum distance to the target before the janitor stops moving
-        self.stop_distance = 50
+        self.stop_distance = 40
 
         # Patrol points
         self.patrol_points = [
@@ -119,7 +119,7 @@ class Janitor:
 
         now = pygame.time.get_ticks()
 
-        if now - self.path_timer < 50:
+        if now - self.path_timer < 150:
             return
         
         start = (
@@ -145,7 +145,7 @@ class Janitor:
         if new_path != self.path:
             self.path = new_path
             self.path_index = 0
-            
+
         self.path_timer = now
     
     # Return the next waypoint on the path

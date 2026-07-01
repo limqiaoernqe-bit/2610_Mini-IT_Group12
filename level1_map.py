@@ -487,7 +487,6 @@ while running:
             player.x,
             player.y,
             active_walls,
-            barricade
         )
 
     # Move ghost
