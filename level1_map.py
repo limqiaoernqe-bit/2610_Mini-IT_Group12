@@ -227,14 +227,19 @@ kitchen = RoomTrigger(
     "Kitchen"
 )
 
-room_114 = RoomTrigger(
+room_112 = RoomTrigger(
     pygame.Rect(1095, 2159, 29, 98),
-    "Room 114"
+    "Room 112"
 )
 
 room_113 = RoomTrigger(
-    pygame.Rect(673, 2111, 24, 96),
+    pygame.Rect(1088, 1533, 39, 147),
     "Room 113"
+)
+
+room_114 = RoomTrigger(
+    pygame.Rect(673, 2111, 24, 96),
+    "Room 114"
 )
 
 room_115 = RoomTrigger(
@@ -290,8 +295,9 @@ room_triggers = [
     restaurant_top,
     restaurant_bottom,
     kitchen,
-    room_114,
+    room_112,
     room_113,
+    room_114,
     room_115,
     room_116,
     room_117,
