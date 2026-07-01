@@ -18,13 +18,17 @@ import json
 try:
     with open("save_inventory.json", "r") as f:
         save_data = json.load(f)
+ 
+        if save_data.get("items") or save_data.get("uses"):
+           for item in save_data.get("items", []):
+               inventory.add_item(item)
 
-        for item in save_data.get("items", []):
-            inventory.add_item(item)
-
-        for name, uses in save_data.get("uses", {}).items():
-            if name in Weapons and uses is not None:
+           for name, uses in save_data.get("uses", {}).items():
+               if name in Weapons and uses is not None:
                 Weapons[name]["uses"] = uses
+
+        else:
+            save_data = {}
 
 except (FileNotFoundError, json.JSONDecodeError):
     save_data = {}
@@ -482,12 +486,11 @@ while running:
     # Move recepionist and ghost
     if not game_over_system.is_game_over():
 
-    if not receptionist.defeat:
+     if not receptionist.defeat:
            receptionist.update(
             player.x,
             player.y,
             active_walls,
-            barricade
         )
 
     # Move ghost
@@ -784,10 +787,10 @@ while running:
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
 
-                result = game_over_system.handle_click(event.pos, player)
+                result = game_over_system.handle_click(event.pos, player, inventory, Weapons, object_interaction, PuzzleL1, Clue)
 
                 if result == "retry":
-                    game_over_system.reset(player)
+                    player.x, player.y = game_over_system.spawn_point
 
                 elif result == "quit":
                     pygame.quit()

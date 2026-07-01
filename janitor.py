@@ -15,6 +15,8 @@ class Janitor:
         self.defeat = False
         self.stun_timer = 0
         self.slip_until = 0
+        self.rect = pygame.Rect(0,0, 100,150)
+        self.rect.center = (self.x, self.y)
 
         self.frame = 0
         self.anim_speed = 0.12
@@ -83,9 +85,6 @@ class Janitor:
         # Used to detect when the janitor is stuck
         self.last_position = (self.x, self.y)
         self.stuck_timer = pygame.time.get_ticks()
-
-        self.rect = pygame.Rect(0, 0, 72, 90)
-        self.rect.center = (self.x, self.y)
 
   
     def load_sheet(self, sheet, rows, cols):

@@ -29,6 +29,8 @@ popup_message = ""
 main_weapon_unlocked = False
 main_weapon_popup_shown = False
 
+retry_mode = False
+
 def draw_text(surface, text, rect, font, color):
     words = text.split(" ")
     lines = []
@@ -344,7 +346,7 @@ while running:
     # Events
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            result = game_over_system.handle_click(event.pos, player)
+            result = game_over_system.handle_click(event.pos, player, inventory, Weapons, object_interaction, Puzzle, Clue)
 
             if result == "retry":
                 player.x, player.y = game_over_system.spawn_point
@@ -397,13 +399,13 @@ while running:
 
                         # save inventory before quitting
                         import json
-
-                        save_data = {
-                            "items": inventory.items,
-                            "uses": {name: Weapons[name].get("uses", None) for name in inventory.items if name in Weapons}
-                        }
-                        with open("save_inventory.json", "w") as f:
-                            json.dump(save_data, f)
+                        if not retry_mode: 
+                            save_data = {
+                               "items": inventory.items,
+                               "uses": {name: Weapons[name].get("uses", None) for name in inventory.items if name in Weapons}
+                            }
+                            with open("save_inventory.json", "w") as f:
+                                 json.dump(save_data, f)
                         running = False
                         break
                     else:
@@ -574,7 +576,7 @@ while running:
                 mouse_pos = event.pos
 
         if mouse_clicked:
-            result = game_over_system.handle_click(mouse_pos, player)
+            result = game_over_system.handle_click(mouse_pos, player, inventory, Weapons, object_interaction, Puzzle, Clue)
 
             if result == "retry":
                 player.x, player.y = game_over_system.spawn_point

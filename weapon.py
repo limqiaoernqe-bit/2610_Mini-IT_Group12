@@ -22,7 +22,7 @@ swing_sound = pygame.mixer.Sound(os.path.join(ASSET_DIR, "baseballswing.mp3"))
 L2Weapons = {
     #Level 2 Weapons
     "MWpiece1": {
-        "zone": pygame.Rect(12933, 1574, 90, 90), #just a placeholder cause im not sure of the exact position
+        "zone": pygame.Rect(1255, 1952, 90, 90), #just a placeholder cause im not sure of the exact position
         "uses": 0,
         "prompt": "R",
         "collected": False,
@@ -35,7 +35,7 @@ L2Weapons = {
         "prompt": "R",
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeel.png")).convert_alpha(), (90,90)),
-        "popup_text": "Banana Peel = Helps slow down the janitor. 3 use",
+        "popup_text": "Banana Peel = Stops the janitor for 40 seconds. 3 use",
         "image_used": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "BananaPeelUse.png")).convert_alpha(), (75,75)),
     },
     "CleaningSpray": {
@@ -44,7 +44,7 @@ L2Weapons = {
         "prompt": "R",
         "collected": False,
         "image": pygame.transform.scale(pygame.image.load(os.path.join(ASSET_DIR, "cleaning-spray.png")).convert_alpha(), (90,90)),
-        "popup_text": "Cleaning Spray = Stops the janitor for a few seconds. 3 uses"
+        "popup_text": "Cleaning Spray = Slows the janitor for a few seconds. 3 uses"
     },
     "BaseballBat":{
         "zone": pygame.Rect(3184, 369, 90, 90),
