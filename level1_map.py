@@ -777,7 +777,7 @@ while running:
                 message = "Press R to return to Level 2"
 
             elif room.locked:
-                message = f"{room.message} is locked. Please find a key.Press E to unlock"
+                message = f"{room.message} is locked."
 
             else:
                 message = room.message
