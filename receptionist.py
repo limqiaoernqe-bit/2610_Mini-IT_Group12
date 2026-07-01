@@ -54,7 +54,7 @@ class Receptionist:
 
         # Patrol points
         self.patrol_points = [    # change coordinates later
-            (650, 820),
+            (2783, 1864),
             (1200, 820),
             (1200, 500),
             (650, 500)
