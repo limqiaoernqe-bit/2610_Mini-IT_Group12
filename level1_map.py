@@ -481,8 +481,7 @@ while running:
 
     # Move recepionist and ghost
     if not game_over_system.is_game_over():
-
-    if not receptionist.defeat:
+        if not receptionist.defeat:
            receptionist.update(
             player.x,
             player.y,
