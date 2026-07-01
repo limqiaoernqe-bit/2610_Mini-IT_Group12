@@ -51,7 +51,7 @@ class Janitor:
         self.current_frames = self.walk_front
 
         # Minimum distance to the target before the janitor stops moving
-        self.stop_distance = 50
+        self.stop_distance = 40
 
         # Patrol points
         self.patrol_points = [
@@ -86,6 +86,9 @@ class Janitor:
         self.last_position = (self.x, self.y)
         self.stuck_timer = pygame.time.get_ticks()
 
+        self.rect = pygame.Rect(0, 0, 40, 40)
+        self.rect.midbottom = (self.x, self.y)
+
   
     def load_sheet(self, sheet, rows, cols):
         frames = []
@@ -118,7 +121,7 @@ class Janitor:
 
         now = pygame.time.get_ticks()
 
-        if now - self.path_timer < 300:
+        if now - self.path_timer < 150:
             return
         
         start = (
@@ -133,7 +136,7 @@ class Janitor:
 
         grid_path = find_path(start, goal, blocked)
 
-        self.path = [
+        new_path = [
             (
                 gx * self.tile_size + self.tile_size // 2,
                 gy * self.tile_size + self.tile_size // 2
@@ -141,7 +144,10 @@ class Janitor:
             for gx, gy in grid_path
         ]
 
-        self.path_index = 0
+        if new_path != self.path:
+            self.path = new_path
+            self.path_index = 0
+
         self.path_timer = now
     
     # Return the next waypoint on the path
@@ -209,7 +215,7 @@ class Janitor:
                self.image = pygame.transform.rotate(self.idle_front, self.slip_angle)
                self.x -= 2
                self.y -= 1 
-               self.rect.center = (self.x, self.y)
+               self.rect.midbottom = (self.x, self.y)
 
             else:
                self.image = pygame.transform.rotate(self.idle_front, 90)
@@ -242,6 +248,12 @@ class Janitor:
 
             self.state = "chasing"
             self.last_seen = (player_x, player_y)
+
+        # Lost sight of the player
+        elif self.state == "chasing":
+
+            self.state = "search"
+            self.search_timer = pygame.time.get_ticks()
 
         # Janitor AI behaviour
         # Patrol state: Janitor follows a fixed patrol routed around the hotel
@@ -394,7 +406,11 @@ class Janitor:
         # Move horizontally if there is no collision
         if not blocked_collision:
             self.x += move_x
-            self.rect.center = (self.x, self.y)
+            self.rect.midbottom = (self.x, self.y)
+        else:
+            self.path = []
+            self.path_index = 0
+            self.path_timer = 0
 
         # Vertical collision
         janitor_rect = self.rect.copy()
@@ -411,7 +427,11 @@ class Janitor:
         # Move vertically if there is no collision
         if not blocked_collision:
             self.y += move_y
-            self.rect.center = (self.x, self.y)
+            self.rect.midbottom = (self.x, self.y)
+        else:
+            self.path = []
+            self.path_index = 0
+            self.path_timer = 0
 
         # Update animation
         self.image = self.animate()
