@@ -146,7 +146,8 @@ game_over_system = GameOverSystem(lives=3, spawn_point=(1776, 2784))
 # Receptionist spawn position
 receptionist = Receptionist(
     2783, 
-    1864
+    1864,
+    TILE_SIZE
 )
 
 # Ghost spawn position
@@ -477,6 +478,21 @@ while running:
         keys = pygame.key.get_pressed()
         player.update(keys, active_walls)
 
+    # Convert collision rectangles into blocked grid tiles
+    blocked = set()
+
+    for wall in active_walls:
+        
+        left = wall.left // TILE_SIZE
+        right = (wall.right - 1) // TILE_SIZE
+
+        top = wall.top // TILE_SIZE
+        bottom = (wall.bottom- 1) // TILE_SIZE
+
+        for y in range(top, bottom + 1):
+            for x in range(left, right + 1):
+                blocked.add((x, y))
+
     
 
     # Move recepionist and ghost
@@ -485,6 +501,7 @@ while running:
            receptionist.update(
             player.x,
             player.y,
+            blocked,
             active_walls,
         )
 
