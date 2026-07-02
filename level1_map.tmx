@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.1" orientation="orthogonal" renderorder="right-down" width="80" height="60" tilewidth="48" tileheight="48" infinite="0" nextlayerid="30" nextobjectid="35">
+<map version="1.10" tiledversion="1.12.1" orientation="orthogonal" renderorder="right-down" width="80" height="60" tilewidth="48" tileheight="48" infinite="0" nextlayerid="30" nextobjectid="37">
  <tileset firstgid="1" name="Rooms" tilewidth="48" tileheight="48" tilecount="391" columns="17">
   <image source="tiles_assets/Room_Builder_free_48x48.png" width="816" height="1104"/>
  </tileset>
@@ -813,13 +813,14 @@
   <object id="12" name="Kitchen" x="2832" y="283" width="34" height="102"/>
   <object id="14" name="Lobby" x="2685" y="2590" width="33" height="148"/>
   <object id="18" name="Receptionist Area" x="2638" y="1774" width="74" height="337"/>
-  <object id="20" name="Room 116_117" x="336" y="572" width="50" height="49"/>
   <object id="21" name="Room 116" x="672" y="911" width="55" height="97"/>
   <object id="25" name="Room 117" x="673" y="238" width="67" height="100"/>
   <object id="26" name="Security Room" x="2305" y="2037" width="48" height="168"/>
   <object id="28" name="Exit door" x="3782" y="2157" width="57" height="145"/>
   <object id="29" name="Stairs Trigger" x="1760" y="2768" width="220" height="94"/>
   <object id="34" name="Room 113" x="1088" y="1532.67" width="39.3333" height="147.333"/>
+  <object id="35" x="306" y="622" width="102.667" height="125.333"/>
+  <object id="36" name="Room 116_117" x="408.667" y="747.333"/>
  </objectgroup>
  <objectgroup id="29" name="Keys Objects">
   <object id="33" name="Exit Key" x="2492" y="1752" width="39" height="37"/>

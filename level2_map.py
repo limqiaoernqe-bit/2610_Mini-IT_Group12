@@ -72,9 +72,9 @@ object_interaction = ObjectInteraction()
 
 # Preload portraits for dialogues
 image_dict = {
-    "chloe_front.png": pygame.image.load("assets/chloe_front_detailed.png"),
-    "jay_front.png": pygame.image.load("assets/jay_front_detailed.png"),
-    # add others as needed
+    "chloe_front_detailed.png": pygame.image.load("assets/chloe_front_detailed.png"),
+    "jay_front_detailed.png": pygame.image.load("assets/jay_front_detailed.png"),
+    "mia_front_detailed.png": pygame.image.load("assets/mia_front_detailed.png"),
 }
 
 # Load Map

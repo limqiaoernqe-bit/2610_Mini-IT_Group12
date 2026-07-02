@@ -84,6 +84,13 @@ pygame.display.set_caption("Level 1")
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 36)
 
+# Preload portraits for dialogues
+image_dict = {
+    "james_front_detailed.png": pygame.image.load("assets/james_front_detailed.png"),
+    "mark_front_detailed.png": pygame.image.load("assets/mark_front_detailed.png"),
+    "mia_front_detailed.png": pygame.image.load("assets/mia_front_detailed.png"),
+}
+
 # Load map
 tmx_data = pytmx.load_pygame("level1_map.tmx")
 TILE_SIZE = tmx_data.tilewidth
@@ -260,7 +267,7 @@ room_117 = RoomTrigger(
 )
 
 room116_117 = RoomTrigger(
-    pygame.Rect(336, 572, 50, 49),
+    pygame.Rect(306, 622, 103, 125),
     "Connecting Door",
     locked=True
 )
@@ -387,6 +394,9 @@ while running:
 
             if active_puzzle and active_puzzle["active"]:
                 handle_puzzle_input(event, active_puzzle, inventory, object_interaction)
+
+            if event.key == pygame.K_SPACE:
+                scene_manager.update()
 
     
           # to find coordinates
@@ -694,7 +704,11 @@ while running:
     # Press E to unlock Room 116 (Mark's room)
     if room_116.check_collision(player_rect):
         
-        if keys[pygame.K_e] and room116_door.is_locked():
+        if(
+            ROOM116_KEY in inventory.items
+            and keys[pygame.K_e] 
+            and room116_door.is_locked()
+        ):
             inventory.use_item(
                 ROOM116_KEY,
                 room116_door
@@ -705,7 +719,11 @@ while running:
     # Press E to unlock Room 117 (James's room)
     if room_117.check_collision(player_rect):
         
-        if keys[pygame.K_e] and room117_door.is_locked():
+        if(
+            ROOM117_KEY in inventory.items
+            and keys[pygame.K_e] 
+            and room117_door.is_locked()
+        ):
             inventory.use_item(
                 ROOM117_KEY,
                 room117_door
@@ -716,7 +734,10 @@ while running:
      # Press E to unlock Connecting Door
     if room116_117.check_collision(player_rect):
         
-        if keys[pygame.K_e]:
+        if(
+            ROOM116_117_CODE in inventory.items
+            and keys[pygame.K_e]
+        ):
             inventory.use_item(
                 ROOM116_117_CODE,
                 room116_117_door
@@ -766,11 +787,11 @@ while running:
                 else:
                     message = "Security Room is locked. Find a Security Badge."
 
-            elif room == room_117 and room.locked:
-                if ROOM117_KEY in inventory.items:
-                    message = "Room 117 is locked. Press E to unlock."
+            elif room == room_116 and room.locked:
+                if ROOM116_KEY in inventory.items:
+                    message = "Room 116 is locked. Press E to unlock."
                 else:
-                    message = "Room 117 is locked. Please find the Room 117 key."
+                    message = "Room 116 is locked. Please find the Room 116 key."
 
             elif room == exit_trigger and room.locked:
 
@@ -797,6 +818,9 @@ while running:
             screen.blit(text_surface, (20, 20))
 
     object_interaction.draw(screen)
+
+    # Draw dialogue cutscenes if active
+    scene_manager.draw(screen, font, image_dict)
 
     if game_over_system.is_game_over():
 
