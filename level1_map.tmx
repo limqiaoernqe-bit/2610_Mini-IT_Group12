@@ -819,8 +819,7 @@
   <object id="28" name="Exit door" x="3782" y="2157" width="57" height="145"/>
   <object id="29" name="Stairs Trigger" x="1760" y="2768" width="220" height="94"/>
   <object id="34" name="Room 113" x="1088" y="1532.67" width="39.3333" height="147.333"/>
-  <object id="35" x="306" y="622" width="102.667" height="125.333"/>
-  <object id="36" name="Room 116_117" x="408.667" y="747.333"/>
+  <object id="35" name="Room 116_117" x="306" y="622" width="102.667" height="125.333"/>
  </objectgroup>
  <objectgroup id="29" name="Keys Objects">
   <object id="33" name="Exit Key" x="2492" y="1752" width="39" height="37"/>
