@@ -6,7 +6,7 @@ import subprocess
 
 import json
 
-from inventory import game_inventory as inventory, ROOM_210_KEY, ROOM_206_KEY, JANITOR_KEY, SECURITY_BADGE
+from inventory import game_inventory as inventory, ROOM_210_KEY, ROOM_206_KEY, JANITOR_KEY, SECURITY_BADGE, BOLT_CUTTER
 from player import Player
 from room_navigation import RoomTrigger
 from door import Door
@@ -275,7 +275,9 @@ except (FileNotFoundError, json.JSONDecodeError):
 
         "room210_key_collected": False,
         "janitor_key_collected": False,
-        "security_badge_collected": False
+        "security_badge_collected": False,
+
+        "locker_unlocked": False
     }
 
 # Restore doors
@@ -289,6 +291,9 @@ janitor.defeat = level2_save["janitor_defeated"]
 # Restore stairs state
 stairs_trigger.locked = not level2_save["stairs_unlocked"]
 
+# Restore locker state
+locker_unlocked = level2_save.get("locker_unlocked", False)
+
 # Save Level 2 progress
 def save_level2():
     data = {
@@ -300,7 +305,9 @@ def save_level2():
         
         "room210_key_collected": room210_key_collected,
         "janitor_key_collected": janitor_key_collected,
-        "security_badge_collected": security_badge_collected
+        "security_badge_collected": security_badge_collected,
+
+        "locker_unlocked": locker_unlocked
     }
 
     with open("save_level2.json", "w") as f:
@@ -354,6 +361,7 @@ security_badge_rect = pygame.Rect(
 room210_key_collected = level2_save.get("room210_key_collected", False)
 janitor_key_collected = level2_save.get("janitor_key_collected", False)
 security_badge_collected = level2_save.get("security_badge_collected", False)
+object_interaction.zones["locker"]["collected"] = security_badge_collected
 
 room_triggers = [
     maintenance_room,
@@ -452,11 +460,14 @@ while running:
                     
                 # Pick up Security Badge
                 elif (
-                    player_rect.colliderect(security_badge_rect)
+                    player_rect.colliderect(object_interaction.zones["locker"]["zone"])
+                    and locker_unlocked
                     and not security_badge_collected
                 ):
-                    inventory.add_item(SECURITY_BADGE)
+                    # Show obtained popup
+                    object_interaction.trigger(SECURITY_BADGE)
                     security_badge_collected = True
+                    object_interaction.zones["locker"]["collected"] = True
                     save_level2()  # Save after picking up the key
 
                 # Go to level 1 after stairs are unlocked
@@ -743,6 +754,15 @@ while running:
     for name, data in object_interaction.zones.items():
         zone = data["zone"]
         collected = data.get("collected", False)
+
+        # Don't show R on the locker until it's unlocked
+        if name == "locker":
+            if not locker_unlocked:
+                continue
+
+            if security_badge_collected:
+                continue
+
         object_interaction.show_object_prompt(screen, font, zone, player_rect, camera_x, camera_y, collected)    
 
         # draw inventory
@@ -795,6 +815,21 @@ while running:
                 JANITOR_KEY,
                 janitor_door
             )
+
+            save_level2()
+
+    # Press E to unlock Locker
+    locker_zone = object_interaction.zones["locker"]["zone"]
+
+    if player_rect.colliderect(locker_zone):
+        if (
+            BOLT_CUTTER in inventory.items
+            and keys[pygame.K_e]
+            and not locker_unlocked
+        ):
+            inventory.remove_item(BOLT_CUTTER)
+
+            locker_unlocked = True
 
             save_level2()
     
@@ -901,6 +936,43 @@ while running:
             )
 
             screen.blit(text_surface, (20, 20))
+
+    # Locker message
+    locker_zone = object_interaction.zones["locker"]["zone"]
+
+    if player_rect.colliderect(locker_zone):
+
+        pygame.draw.rect(
+            screen,
+            (0, 0, 0),
+            (10, 10, 650, 50)
+        )
+
+        pygame.draw.rect(
+            screen,
+            (255, 255, 255),
+            (10, 10, 650, 50),
+            2
+        )
+
+        if not locker_unlocked:
+            if BOLT_CUTTER in inventory.items:
+                message = "Locker is locked. Press E to unlock."
+            else:
+                message = "Locker is locked. Please find the bolt cutter."
+        else:
+            if not security_badge_collected:
+                message = "Press R to collect the Security Badge."
+            else:
+                message = "Locker is empty."
+
+        text_surface = font.render(
+            message,
+            True,
+            (255, 255, 255)
+        )
+
+        screen.blit(text_surface, (20, 20))
 
     object_interaction.draw(screen)
 
