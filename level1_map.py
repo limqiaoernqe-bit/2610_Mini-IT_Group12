@@ -172,8 +172,8 @@ game_over_system = GameOverSystem(lives=3, spawn_point=(1776, 2784))
 
 # Receptionist spawn position
 receptionist = Receptionist(
-    2783, 
-    1864,
+    2776, 
+    1963,
     TILE_SIZE
 )
 
@@ -712,7 +712,7 @@ while running:
         if pygame.time.get_ticks() - active_puzzle.get("correct_start", 0) > 3000:  # Show message for 3 seconds
             active_puzzle["active"] = False
 
-            # clue 
+            # clue go_to_
     for clue in Clue.values():
         if not (active_puzzle and active_puzzle["active"]):
             if "image" in clue:
