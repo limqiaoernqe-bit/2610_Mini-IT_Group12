@@ -20,8 +20,11 @@ try:
         save_data = json.load(f)
  
         if save_data.get("items") or save_data.get("uses"):
+           
+           inventory.items.clear()
+
            for item in save_data.get("items", []):
-               inventory.add_item(item)
+               inventory.items.append(item)
 
            for name, uses in save_data.get("uses", {}).items():
                if name in Weapons and uses is not None:
@@ -328,17 +331,6 @@ stairs_to_level2 = RoomTrigger(
     "Stairs"
 )
 
-# Static item hitboxes (keys placed at fixed map coordinates)
-exit_key_rect = pygame.Rect(
-    2492,
-    1752,
-    39,
-    37
-)
-
-# Key collection status
-exit_key_collected = False
-
 room_triggers = [
     security_room,
     lobby,
@@ -396,22 +388,25 @@ while running:
         if event.type == pygame.KEYDOWN:
 
             if event.key == pygame.K_r:
-                
-                
-                # Pick up exit door key
-                if (
-                    player_rect.colliderect(exit_key_rect)
-                    and not exit_key_collected
-                ):
-                    inventory.add_item(EXIT_DOOR_KEY)
-                    exit_key_collected = True
 
                 # Go back to level 2                
-                elif stairs_to_level2.check_collision(player_rect):
+                if stairs_to_level2.check_collision(player_rect):
                     print("Going back to Level 2...")
 
                     # Close level 1 and open level 2
                     save_level1()
+
+                    save_data = {
+                        "items": inventory.items,
+                        "uses": {
+                            name: Weapons[name].get("uses", None)
+                            for name in inventory.items
+                            if name in Weapons
+                        }
+                    }
+
+                    with open("save_inventory.json", "w") as f:
+                        json.dump(save_data, f)
 
                     pygame.quit()
                     subprocess.run(["python", "level2_map.py", "stairs"])
@@ -513,8 +508,6 @@ while running:
     else:
         keys = pygame.key.get_pressed()
 
-# Active collision walls
-    active_walls = normal_walls.copy()
     # Active collision walls
     active_walls = normal_walls.copy()
 
@@ -599,6 +592,20 @@ while running:
 
     if not receptionist.defeat and receptionist.rect.colliderect(player_rect):
         game_over_system.on_caught(player)
+
+    # Give Exit Key after both enemies are defeated
+    if(
+        receptionist.defeat
+        and ghost.defeat
+        and EXIT_DOOR_KEY not in inventory.items
+    ):
+        inventory.add_item(EXIT_DOOR_KEY)
+
+        pop_up_message = "You got the Exit Key!"
+        weapon_popup = True
+        popup_start_time = pygame.time.get_ticks()
+
+        save_level1()  # Save after defeating enemies and getting the exit key
 
     # Camera System
     camera_x = player.x - screen_width // 2
