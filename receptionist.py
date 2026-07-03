@@ -54,11 +54,12 @@ class Receptionist:
         self.stop_distance = 40
 
         # Patrol points
-        self.patrol_points = [    # change coordinates later
-            (2783, 1864),
-            (1200, 820),
-            (1200, 500),
-            (650, 500)
+        self.patrol_points = [
+            (2776, 1963),
+            (2847, 2657),
+            (2309, 2665),
+            (932, 2632),
+            (908, 1045)
         ]
 
         self.current_patrol = 0
