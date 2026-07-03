@@ -77,8 +77,10 @@ try:
     with open("save_inventory.json", "r") as f:
         save_data = json.load(f)
 
+        inventory.items.clear()
+
         for item in save_data.get("items", []):
-            inventory.add_item(item)
+            inventory.items.append(item)
 
         for weapon_name, uses in save_data.get("uses", {}).items():
             if weapon_name in Weapons:
@@ -269,7 +271,11 @@ except (FileNotFoundError, json.JSONDecodeError):
         "room210_unlocked": False,
         "janitor_room_unlocked": False,
         "janitor_defeated": False,
-        "stairs_unlocked": False
+        "stairs_unlocked": False,
+
+        "room210_key_collected": False,
+        "janitor_key_collected": False,
+        "security_badge_collected": False
     }
 
 # Restore doors
@@ -290,7 +296,11 @@ def save_level2():
         "room210_unlocked": not room210_door.is_locked(),
         "janitor_room_unlocked": not janitor_door.is_locked(),
         "janitor_defeated": janitor.defeat,
-        "stairs_unlocked": not stairs_trigger.locked
+        "stairs_unlocked": not stairs_trigger.locked,
+        
+        "room210_key_collected": room210_key_collected,
+        "janitor_key_collected": janitor_key_collected,
+        "security_badge_collected": security_badge_collected
     }
 
     with open("save_level2.json", "w") as f:
@@ -340,9 +350,10 @@ security_badge_rect = pygame.Rect(
 )
 
 # Key collection status
-room210_key_collected = False
-janitor_key_collected = False
-security_badge_collected = False
+# Restore collected items
+room210_key_collected = level2_save.get("room210_key_collected", False)
+janitor_key_collected = level2_save.get("janitor_key_collected", False)
+security_badge_collected = level2_save.get("security_badge_collected", False)
 
 room_triggers = [
     maintenance_room,
@@ -428,6 +439,7 @@ while running:
                 ):
                     inventory.add_item(ROOM_210_KEY)
                     room210_key_collected = True
+                    save_level2()  # Save after picking up the key
 
                 # Pick up Janitor Key
                 elif (
@@ -436,6 +448,7 @@ while running:
                 ):
                     inventory.add_item(JANITOR_KEY)
                     janitor_key_collected = True
+                    save_level2()  # Save after picking up the key
                     
                 # Pick up Security Badge
                 elif (
@@ -444,6 +457,7 @@ while running:
                 ):
                     inventory.add_item(SECURITY_BADGE)
                     security_badge_collected = True
+                    save_level2()  # Save after picking up the key
 
                 # Go to level 1 after stairs are unlocked
                 elif stairs_trigger.check_collision(player_rect):
@@ -456,7 +470,11 @@ while running:
                         if not retry_mode: 
                             save_data = {
                                "items": inventory.items,
-                               "uses": {name: Weapons[name].get("uses", None) for name in inventory.items if name in Weapons}
+                               "uses": {
+                                   name: Weapons[name].get("uses", None)
+                                   for name in inventory.items
+                                   if name in Weapons
+                                }
                             }
                             with open("save_inventory.json", "w") as f:
                                  json.dump(save_data, f)
