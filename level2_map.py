@@ -4,6 +4,8 @@ import pytmx
 # Used to open level 1 after player reaches the stairs
 import subprocess
 
+import json
+
 from inventory import game_inventory as inventory, ROOM_210_KEY, ROOM_206_KEY, JANITOR_KEY, SECURITY_BADGE
 from player import Player
 from room_navigation import RoomTrigger
@@ -69,6 +71,21 @@ clock = pygame.time.Clock()
 
 font = pygame.font.Font(None, 36)
 object_interaction = ObjectInteraction()
+
+#Load inventory from save file
+try:
+    with open("save_inventory.json", "r") as f:
+        save_data = json.load(f)
+
+        for item in save_data.get("items", []):
+            inventory.add_item(item)
+
+        for weapon_name, uses in save_data.get("uses", {}).items():
+            if weapon_name in Weapons:
+                Weapons[weapon_name]["uses"] = uses
+
+except (FileNotFoundError, json.JSONDecodeError):
+    pass
 
 # Preload portraits for dialogues
 image_dict = {
@@ -138,8 +155,6 @@ janitor = Janitor(
     960,
     TILE_SIZE
 )
-
-object_interaction = ObjectInteraction()
 
 enemies = [janitor]
 
@@ -242,6 +257,44 @@ stairs_trigger = RoomTrigger(
     "Stairs", 
     locked = True
 )
+
+# Load Level 2 save
+try:
+    with open("save_level2.json", "r") as f:
+        level2_save = json.load(f)
+
+except (FileNotFoundError, json.JSONDecodeError):
+    level2_save = {
+        "room206_unlocked": False,
+        "room210_unlocked": False,
+        "janitor_room_unlocked": False,
+        "janitor_defeated": False,
+        "stairs_unlocked": False
+    }
+
+# Restore doors
+room206_door.locked = not level2_save["room206_unlocked"]
+room210_door.locked = not level2_save["room210_unlocked"]
+janitor_door.locked = not level2_save["janitor_room_unlocked"]
+
+# Restore janitor state
+janitor.defeat = level2_save["janitor_defeated"]
+
+# Restore stairs state
+stairs_trigger.locked = not level2_save["stairs_unlocked"]
+
+# Save Level 2 progress
+def save_level2():
+    data = {
+        "room206_unlocked": not room206_door.is_locked(),
+        "room210_unlocked": not room210_door.is_locked(),
+        "janitor_room_unlocked": not janitor_door.is_locked(),
+        "janitor_defeated": janitor.defeat,
+        "stairs_unlocked": not stairs_trigger.locked
+    }
+
+    with open("save_level2.json", "w") as f:
+        json.dump(data, f, indent=4)
 
 # Spawn position logic
 
@@ -408,6 +461,8 @@ while running:
                             with open("save_inventory.json", "w") as f:
                                  json.dump(save_data, f)
 
+                        save_level2()
+
                         go_to_level1 = True
                         running = False
                         break
@@ -504,7 +559,10 @@ while running:
         keys = pygame.key.get_pressed()
 
     # Active collision walls
-    active_walls = normal_walls + stairs_walls
+    active_walls = normal_walls.copy()
+
+    if stairs_trigger.locked:
+        active_walls += stairs_walls
 
     # Locked room walls    
     if room210_door.is_locked():
@@ -553,7 +611,9 @@ while running:
 
     # Unlock stairs when janitor is defeated
     if janitor.defeat:
-        stairs_trigger.locked = False
+        if stairs_trigger.locked:
+            stairs_trigger.locked = False
+            save_level2()
 
     # Camera System
     camera_x = player.x - screen_width // 2
@@ -708,6 +768,9 @@ while running:
                 ROOM_210_KEY,
                 room210_door
             )
+
+            save_level2()
+
             # Trigger Jay's cutscene
             on_jay_saved()
 
@@ -723,6 +786,8 @@ while running:
                 JANITOR_KEY,
                 janitor_door
             )
+
+            save_level2()
     
     # Press E to unlock Room 206 (Chloe's room)
     if room_206.check_collision(player_rect):
@@ -736,6 +801,9 @@ while running:
                 ROOM_206_KEY,
                 room206_door
             )
+
+            save_level2()
+
             # Trigger Chloe's cutscene
             on_chloe_saved()
 
@@ -853,5 +921,4 @@ while running:
 pygame.quit()
 
 if go_to_level1:
-    subprocess.run(["python", "level1_map.py"])
-                     
+    subprocess.run(["python", "level1_map.py", "stairs"])

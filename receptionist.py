@@ -1,4 +1,5 @@
 import pygame
+import json
 
 SCALE_SIZE = (140, 140)
 from weapon import active_traps
@@ -497,6 +498,19 @@ class Receptionist:
         elif effect == "KitchenKnife":
             self.state = "defeated"
             self.defeat = True
+
+            # Save receptionist defeated
+            try:
+                with open("save_level1.json", "r") as f:
+                    data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                data = {}
+
+            data["receptionist_defeated"] = True
+
+            with open("save_level1.json", "w") as f:
+                json.dump(data, f, indent=4)
+
             self.popup_message = "Receptionist Defeated!"
             self.popup_start_time = pygame.time.get_ticks()
             self.popup_duration = 3000  

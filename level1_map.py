@@ -33,6 +33,22 @@ try:
 except (FileNotFoundError, json.JSONDecodeError):
     save_data = {}
 
+# Load level 1 save
+try:
+    with open("save_level1.json", "r") as f:
+        level1_save = json.load(f)
+
+except (FileNotFoundError, json.JSONDecodeError):
+    level1_save = {
+        "security_room_unlocked": False,
+        "room116_unlocked": False,
+        "room117_unlocked": False,
+        "connecting_door_unlocked": False,
+        "exit_door_unlocked": False,
+        "receptionist_defeated": False,
+        "ghost_defeated": False
+    }
+
 heart_img = pygame.image.load("assets/heart.png").convert_alpha()
 heart_img = pygame.transform.scale(heart_img, (50, 50))
 
@@ -166,6 +182,10 @@ ghost = Ghost(
     864,
     864
 )
+
+receptionist.defeat = level1_save["receptionist_defeated"]
+ghost.defeat = level1_save["ghost_defeated"]
+
 # Level 1 enemies
 enemies = [
     receptionist,
@@ -201,6 +221,30 @@ exit_door = Door(
     "Exit Door",
     EXIT_DOOR_KEY
 )
+
+# Save level 1 progress
+def save_level1():
+    data = {
+        "security_room_unlocked": not security_door.is_locked(),
+        "room116_unlocked": not room116_door.is_locked(),
+        "room117_unlocked": not room117_door.is_locked(),
+        "connecting_door_unlocked": not room116_117_door.is_locked(),
+        "exit_door_unlocked": not exit_door.is_locked(),
+
+        "receptionist_defeated": receptionist.defeat,
+        "ghost_defeated": ghost.defeat
+    }
+
+    with open("save_level1.json", "w") as f:
+        json.dump(data, f, indent=4)
+
+
+# Restore doors
+security_door.locked = not level1_save["security_room_unlocked"]
+room116_door.locked = not level1_save["room116_unlocked"]
+room117_door.locked = not level1_save["room117_unlocked"]
+room116_117_door.locked = not level1_save["connecting_door_unlocked"]
+exit_door.locked = not level1_save["exit_door_unlocked"]
 
 # Level 1 Room Triggers
 security_room = RoomTrigger(
@@ -367,6 +411,8 @@ while running:
                     print("Going back to Level 2...")
 
                     # Close level 1 and open level 2
+                    save_level1()
+
                     pygame.quit()
                     subprocess.run(["python", "level2_map.py", "stairs"])
                     running = False
@@ -492,7 +538,6 @@ while running:
         keys = None
     else:
         keys = pygame.key.get_pressed()
-        player.update(keys, active_walls)
     
     if not game_over_system.is_game_over():
         keys = pygame.key.get_pressed()
@@ -701,6 +746,9 @@ while running:
                 security_door
             )
 
+            # save after unlocking security room
+            save_level1()
+
     # Press E to unlock Room 116 (Mark's room)
     if room_116.check_collision(player_rect):
         
@@ -713,6 +761,10 @@ while running:
                 ROOM116_KEY,
                 room116_door
             )
+
+            # save after unlocking room 116
+            save_level1()
+
             # Trigger Mark's cutscene
             on_mark_saved()
 
@@ -728,6 +780,10 @@ while running:
                 ROOM117_KEY,
                 room117_door
             )
+
+            # save after unlocking room 117
+            save_level1()
+
             # Trigger James's cutscene
             on_james_saved()
 
@@ -743,14 +799,23 @@ while running:
                 room116_117_door
             )
 
+            save_level1()
+
     # Press E to unlock Exit Door
     if exit_trigger.check_collision(player_rect):
         
-        if keys[pygame.K_e]:
+        if(
+            EXIT_DOOR_KEY in inventory.items
+            and keys[pygame.K_e] 
+            and exit_door.is_locked()
+        ):
             inventory.use_item(
                 EXIT_DOOR_KEY,
                 exit_door
             )
+
+
+            save_level1()
 
     # Sync trigger status with door status
     security_room.locked = security_door.is_locked()
