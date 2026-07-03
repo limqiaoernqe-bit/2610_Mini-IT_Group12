@@ -151,4 +151,23 @@ SAVEJAMES_DIALOGUE = [ ("James", "james_front_detailed.png","Mia, im so glad you
                        ("Mia", "mia_front_detailed.png", "We have to go right now! "),
                        ] 
 
-ENDING_DIALOGUE = [("Narrator", None,"Mia and her friends escaped that haunted hotel and swore to never go there again."),]
+ENDING_DIALOGUE = [
+    ("COMMAND", "set_bg", "hotelentrance"),
+
+    ("Mia", "mia_front_detailed.png", "H-hey… is everyone here? Please tell me we're all out."),
+    ("Mark", "mark_front_detailed.png", "I'm here… I think I'm alive. I swear I'm never stepping into a place like that again."),
+    ("Chloe", "chloe_front_detailed.png", "My legs are still shaking… that wasn't just a haunted hotel, that was something else."),
+    ("James", "james_front_detailed.png", "We should've left the moment the lights started flickering…"),
+    ("Jay", "jay_front_detailed.png", "James, don't say that now… just—just be glad we made it out."),
+
+    ("COMMAND", "pause", 500),
+
+    ("James", "james_front_detailed.png", "Do you guys hear that…?"),
+    ("Chloe", "chloe_front_detailed.png", "Don't. Don't start that again."),
+    ("Jay", "jay_front_detailed.png", "It's just the wind. It HAS to be just the wind."),
+
+    ("Mia", "mia_front_detailed.png", "…We're not going back. Ever."),
+
+    ("Narrator", None, "Mia and her friends escaped that haunted hotel and swore to never go there again."),
+    ("Narrator", None, "Thank you for playing our game!")
+]

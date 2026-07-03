@@ -1,4 +1,5 @@
 import pygame
+import json
 
 SCALE_SIZE = (140, 140)
 from weapon import active_traps
@@ -53,11 +54,12 @@ class Receptionist:
         self.stop_distance = 40
 
         # Patrol points
-        self.patrol_points = [    # change coordinates later
-            (2783, 1864),
-            (1200, 820),
-            (1200, 500),
-            (650, 500)
+        self.patrol_points = [
+            (2776, 1963),
+            (2847, 2657),
+            (2309, 2665),
+            (932, 2632),
+            (908, 1045)
         ]
 
         self.current_patrol = 0
@@ -501,6 +503,19 @@ class Receptionist:
         elif effect == "KitchenKnife":
             self.state = "defeated"
             self.defeat = True
+
+            # Save receptionist defeated
+            try:
+                with open("save_level1.json", "r") as f:
+                    data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                data = {}
+
+            data["receptionist_defeated"] = True
+
+            with open("save_level1.json", "w") as f:
+                json.dump(data, f, indent=4)
+
             self.popup_message = "Receptionist Defeated!"
             self.popup_start_time = pygame.time.get_ticks()
             self.popup_duration = 3000  

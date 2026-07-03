@@ -1,4 +1,5 @@
 import pygame
+import json
 
 from weapon import salt_line
 
@@ -68,7 +69,7 @@ class Ghost:
             self.image = self.image_left
 
         # Check salt collision    
-        future_rect = self.image.get_rect(midbottom=(next_x, next_y))
+        future_rect = self.image.get_rect(center=(next_x, next_y))
         for salt in salt_line:
             if future_rect.colliderect(salt["rect"]):
                 self.state = "blocked"
@@ -93,6 +94,19 @@ class Ghost:
         if effect == "MWfull":
             self.state = "defeated"
             self.defeat = True
+
+            # save ghost defeated
+            try:
+                with open("save_level1.json", "r") as f:
+                    data = json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                data = {}
+
+            data["ghost_defeated"] = True
+
+            with open("save_level1.json", "w") as f:
+                json.dump(data, f, indent=4)
+
             self.popup_message = "Ghost Defeated!"
             self.popup_start_time = pygame.time.get_ticks()
             self.popup_duration = 3000
