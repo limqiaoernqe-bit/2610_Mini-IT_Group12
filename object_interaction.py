@@ -115,16 +115,9 @@ class ObjectInteraction:
         overlay.fill((0, 0, 0))
         screen.blit(overlay, (0, 0))
         
-<<<<<<< HEAD
-            for idx, item in enumerate(self.current_item):
-                img = self.images[item]
-                rect = img.get_rect(center=(screen.get_width() // 2, 280))
-                screen.blit(img, rect)
-=======
         img = self.images[self.current_item]
         rect = img.get_rect(center=(screen.get_width() // 2, 280))
         screen.blit(img, rect)
->>>>>>> 0a5d118 (fix the bolt cutter error)
 
         text = self.font.render(
             f"Obtained: {self.current_item}",
