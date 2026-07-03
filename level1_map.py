@@ -355,6 +355,12 @@ room113_mirror_rect = pygame.Rect(
 exit_key_collected = False
 # Mirror status
 mirror_active = False
+# Connecting door code system
+code_active = False
+code_input = ""
+code_message = ""
+# Ending cutscene
+ending_triggered = False
 
 
 
@@ -407,6 +413,7 @@ while running:
         40
     )
 
+    
     # Events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -414,18 +421,61 @@ while running:
 
         if event.type == pygame.KEYDOWN:
 
-            # OPEN MIRROR
+            # =========================
+            # R KEY (INTERACTIONS ONLY)
+            # =========================
             if event.key == pygame.K_r:
 
+                # Mirror interaction
                 if player_rect.colliderect(room113_mirror_rect):
                     mirror_active = True
-                    #mirror
                     print("Mirror activated")
 
-            # CLOSE MIRROR
+                # Start code input (Room 116-117 door)
+                if room116_117.check_collision(player_rect) and room116_117.locked:
+                    code_active = True
+                    code_input = ""
+                    code_message = "Enter code:"
+
+            # =========================
+            # ESC KEY (CLOSE MIRROR ONLY)
+            # =========================
             if event.key == pygame.K_ESCAPE:
                 if mirror_active:
                     mirror_active = False
+
+            # =========================
+            # C KEY (CLOSE UI ELEMENTS)
+            # =========================
+            if event.key == pygame.K_c:
+                code_active = False
+                active_puzzle = None
+
+                for clue in Clue.values():
+                    if clue["show_popup"]:
+                        clue["show_popup"] = False
+
+            # =========================
+            # CODE INPUT SYSTEM
+            # =========================
+            if code_active:
+
+                if event.key == pygame.K_BACKSPACE:
+                    code_input = code_input[:-1]
+
+                elif event.key == pygame.K_RETURN:
+                    if code_input == "E472":
+                        room116_117.locked = False
+                        room116_117_door.locked = False
+                        code_message = "Unlocked!"
+                    else:
+                        code_message = "Wrong code. Try again"
+                        code_input = ""
+
+                else:
+                    # only accept letters/numbers
+                    if event.unicode.isprintable():
+                        code_input += event.unicode
                 
                 
                 # Pick up exit door key
@@ -461,6 +511,8 @@ while running:
                     running = False
                 else:                
                     object_interaction.try_interact(player_rect)
+
+
 
                 # puzzle
                 if player_rect.colliderect(PuzzleL1["KeyArea"]["zone"]):
@@ -663,6 +715,19 @@ while running:
     camera_x = player.x - screen_width // 2
     camera_y = player.y - screen_height // 2
 
+    scene_manager.update()
+#ending
+    if (
+        receptionist.defeat
+        and ghost.defeat
+        and not room116_door.is_locked()
+        and not room117_door.is_locked()
+        and EXIT_DOOR_KEY in inventory.items
+        and not ending_triggered
+    ):
+        ending_triggered = True
+        print("ENDING READY")
+
     # Draw everything
     screen.fill((0, 0, 0))
 
@@ -861,19 +926,61 @@ while running:
             save_level1()
 
     # Press E to unlock Exit Door
-    if exit_trigger.check_collision(player_rect):
-        
-        if(
-            EXIT_DOOR_KEY in inventory.items
-            and keys[pygame.K_e] 
-            and exit_door.is_locked()
+        # =========================
+        # ENDING READY CHECK (ALWAYS RUNS)
+        # =========================
+        if (
+            receptionist.defeat
+            and ghost.defeat
+            and not room116_door.is_locked()
+            and not room117_door.is_locked()
+            and EXIT_DOOR_KEY in inventory.items
         ):
-            inventory.use_item(
-                EXIT_DOOR_KEY,
-                exit_door
-            )
+            ending_triggered = True
 
 
+        # =========================
+        # EXIT DOOR INTERACTION
+        # =========================
+    if exit_trigger.check_collision(player_rect):
+
+        # 1. ENDING (HIGHEST PRIORITY)
+        if (
+            ending_triggered
+            and keys[pygame.K_e]
+            and EXIT_DOOR_KEY in inventory.items
+            and not exit_door.is_locked()
+        ):
+            print("ENDING STARTED")
+
+            save_level1()
+
+            save_data = {
+                "items": inventory.items,
+                "uses": {
+                    name: Weapons[name].get("uses", None)
+                    for name in inventory.items
+                    if name in Weapons
+                }
+            }
+
+            with open("save_inventory.json", "w") as f:
+                json.dump(save_data, f)
+
+            on_game_end()
+
+            pygame.quit()
+            subprocess.run(["python", "ending_scene.py"])
+            running = False
+
+        # 2. NORMAL UNLOCK
+        elif (
+            EXIT_DOOR_KEY in inventory.items
+            and keys[pygame.K_e]
+            and exit_door.is_locked()
+            and not ending_triggered
+        ):
+            inventory.use_item(EXIT_DOOR_KEY, exit_door)
             save_level1()
 
     # Sync trigger status with door status
@@ -991,6 +1098,20 @@ while running:
 
         pygame.display.flip()
         continue
+
+    if code_active:
+        box = pygame.Rect(300, 250, 600, 200)
+
+        pygame.draw.rect(screen, (255, 255, 255), box)
+        pygame.draw.rect(screen, (0, 0, 0), box, 2)
+
+        # message
+        msg = font.render(code_message, True, (0, 0, 0))
+        screen.blit(msg, (box.x + 20, box.y + 20))
+
+        # input text
+        input_text = font.render(code_input, True, (0, 0, 0))
+        screen.blit(input_text, (box.x + 20, box.y + 80))
 
     pygame.display.flip()
 
