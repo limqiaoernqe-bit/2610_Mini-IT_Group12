@@ -1,6 +1,6 @@
 import pygame
 from inventory import game_inventory as inventory
-from inventory import JANITOR_KEY, ROOM_210_KEY, SECURITY_BADGE, ROOM_206_KEY, ROOM116_KEY
+from inventory import JANITOR_KEY, ROOM_210_KEY, SECURITY_BADGE, ROOM_206_KEY, ROOM116_KEY, BOLT_CUTTER
 
 class ObjectInteraction:
     def __init__(self):
@@ -20,9 +20,8 @@ class ObjectInteraction:
                 "zone": pygame.Rect(291, 2350, 56, 48) , "collected": False # 210 key 
             },
             "toolbox": {
-
-
-                "zone": pygame.Rect(2572, 2210, 211, 169) # maintanence room
+                "zone": pygame.Rect(2572, 2210, 211, 169), # maintanence room
+                "collected": False
             },
             "locker": {
                 "zone": pygame.Rect(3062, 2186, 120,120 ), "collected": False # badge in janitor's locker
@@ -37,23 +36,15 @@ class ObjectInteraction:
         # =========================
         self.items = {
             "box": ROOM_210_KEY,
-            "toolbox": [
-                "toolbox", 
-                "bolt_cutter", 
-                "screwdriver"
-            ],
-            "flashlight": "flashlight",
-            "stool": JANITOR_KEY ,
-            "locker": SECURITY_BADGE #level2
+            "toolbox": BOLT_CUTTER, #level2
+            "stool": JANITOR_KEY 
         }
 
         # =========================
         # LOAD IMAGES
         # =========================
         self.images = {
-            "bolt_cutter": self.load("assets/bolt_cutter.png"),
-            "toolbox": self.load("assets/toolbox.png"),
-            "screwdriver": self.load("assets/screwdriver.png"),
+            BOLT_CUTTER: self.load("assets/bolt_cutter.png"),
             ROOM_210_KEY: self.load("assets/210key.png"),
             "116key": self.load("assets/116key.png"),
             ROOM116_KEY: self.load("assets/116key.png"),
@@ -123,32 +114,23 @@ class ObjectInteraction:
         overlay.set_alpha(180)
         overlay.fill((0, 0, 0))
         screen.blit(overlay, (0, 0))
-
-        if isinstance(self.current_item, list ):
-            total_width = len(self.current_item) *120
-            start_x = (screen.get_width()- total_width) //2
-            y = 280
         
+<<<<<<< HEAD
             for idx, item in enumerate(self.current_item):
                 img = self.images[item]
                 rect = img.get_rect(center=(screen.get_width() // 2, 280))
                 screen.blit(img, rect)
+=======
+        img = self.images[self.current_item]
+        rect = img.get_rect(center=(screen.get_width() // 2, 280))
+        screen.blit(img, rect)
+>>>>>>> 0a5d118 (fix the bolt cutter error)
 
-            text = self.font.render(
-                f"Obtained: {', '.join(self.current_item)}",
-                True,
-                (255, 255, 255)
-            )
-        else:
-            img = self.images[self.current_item]
-            rect = img.get_rect(center=(screen.get_width() // 2, 280))
-            screen.blit(img, rect)
-
-            text = self.font.render(
-                f"Obtained: {self.current_item}",
-                True,
-                (255, 255, 255)
-            )
+        text = self.font.render(
+            f"Obtained: {self.current_item}",
+            True,
+            (255, 255, 255)
+        )
 
         screen.blit(text, text.get_rect(center=(screen.get_width() // 2, 460)))
 
