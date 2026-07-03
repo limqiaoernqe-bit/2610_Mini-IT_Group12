@@ -197,19 +197,19 @@ class Janitor:
         
         # if defeats the janitor js stops moving
         if self.defeat:
+            if self.footstep_channel:
+                self.footstep_channel.stop()
+                self.footstep_channel = None
             return 
 
-         # stops the janitor for 10 seconds
-        if self.state == "stunned":
-            if pygame.time.get_ticks() - self.stun_timer > 10000: 
-                self.state = "search"
-                self.last_seen = (player_x, player_y)
-                self.search_timer = pygame.time.get_ticks()
-            else:
-                return
-            
         # if janitor is slipping
         if self.state == "slipping":
+
+            # stop the footsteps sound
+            if self.footstep_channel:
+                self.footstep_channel.stop()
+                self.footstep_channel = None
+
             now = pygame.time.get_ticks()
             
             if now < self.slip_until:
