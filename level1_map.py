@@ -57,6 +57,7 @@ heart_img = pygame.transform.scale(heart_img, (50, 50))
 
 
 
+
 # Weapon Popup system
 weapon_popup = False
 popup_start_time = 0
@@ -98,6 +99,8 @@ screen_height = 720
 pygame.init()
 
 screen = pygame.display.set_mode((screen_width, screen_height))
+mirror_img = pygame.image.load("assets/mirror.png").convert()
+mirror_img = pygame.transform.scale(mirror_img, (screen_width, screen_height))
 pygame.display.set_caption("Level 1")
 
 clock = pygame.time.Clock()
@@ -331,6 +334,30 @@ stairs_to_level2 = RoomTrigger(
     "Stairs"
 )
 
+
+# Static item hitboxes (keys placed at fixed map coordinates)
+exit_key_rect = pygame.Rect(
+    2492,
+    1752,
+    39,
+    37
+)
+
+# james mirror puzzle code
+room113_mirror_rect = pygame.Rect(
+    1403,
+    1352,
+    110,   # width (adjust if needed)
+    150    # height (adjust if needed)
+)
+
+# Key collection status
+exit_key_collected = False
+# Mirror status
+mirror_active = False
+
+
+
 room_triggers = [
     security_room,
     lobby,
@@ -387,7 +414,28 @@ while running:
 
         if event.type == pygame.KEYDOWN:
 
+            # OPEN MIRROR
             if event.key == pygame.K_r:
+
+                if player_rect.colliderect(room113_mirror_rect):
+                    mirror_active = True
+                    #mirror
+                    print("Mirror activated")
+
+            # CLOSE MIRROR
+            if event.key == pygame.K_ESCAPE:
+                if mirror_active:
+                    mirror_active = False
+                
+                
+                # Pick up exit door key
+                if (
+                    player_rect.colliderect(exit_key_rect)
+                    and not exit_key_collected
+                ):
+                    inventory.add_item(EXIT_DOOR_KEY)
+                    exit_key_collected = True
+
 
                 # Go back to level 2                
                 if stairs_to_level2.check_collision(player_rect):
@@ -917,6 +965,29 @@ while running:
 
         pygame.display.flip()
         continue
+# mirror
+    if player_rect.colliderect(room113_mirror_rect):
+       
+        text = font.render("R", True, (0, 0, 0))
+        text_rect = text.get_rect(
+            center=(
+                room113_mirror_rect.centerx - camera_x,
+                room113_mirror_rect.y - camera_y + 10
+            )
+        )
+        screen.blit(text, text_rect)
+
+    # MIRROR MODE (PAUSES GAME RENDER)
+    if mirror_active:
+        screen.blit(mirror_img, (0, 0))
+
+        text = font.render("Press ESC to close", True, (0, 0, 0))
+        text_rect = text.get_rect(center=(screen_width // 2, screen_height - 40))
+        screen.blit(text, text_rect)
+
+        pygame.display.flip()
+        continue
+
     pygame.display.flip()
 
 pygame.quit()
