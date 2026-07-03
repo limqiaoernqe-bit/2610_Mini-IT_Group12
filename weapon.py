@@ -128,11 +128,10 @@ def use_weapon(name, player, player_rect, enemies, player_direction, inventory):
            return
        
     if name == "BananaPeel":
-        slippery_zone = pygame.Rect(player.x, player.y + 40, 40, 40)
+        slippery_zone = pygame.Rect(player.x - 50, player.y - 50, 100, 100)
         active_traps.append({
             "rect": slippery_zone, 
             })
-        Weapons[name]["uses"] -= 1
         if Weapons[name]["uses"] <= 0:
             inventory.remove_item(name)
             if player.held_weapon == name:
@@ -165,8 +164,9 @@ def use_weapon(name, player, player_rect, enemies, player_direction, inventory):
                 enemy.weapon_effect("MWfull")
 
     elif name == "KitchenKnife":
+        attack_range = player_rect.inflate(80,80)
         for enemy in enemies:
-            if player_rect.colliderect(enemy.rect):
+            if attack_range.colliderect(enemy.rect):
                 enemy.weapon_effect("KitchenKnife")
  
 # drawing traps

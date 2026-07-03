@@ -535,19 +535,21 @@ while running:
 
         # Collect Weapons
             if event.key == pygame.K_r:
-              for name, weapon in L2Weapons.items():
+              weapon_collected = False
+              for name, weapon in Weapons.items():
                 if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
                     weapon["collected"] = True
                     Weapons[name]["collected"] = True
                     unlock_sound.play()
                     inventory.add_item(name)
+                    weapon_collected = True
 
                     if pieces_collected() == 3 and not main_weapon_unlocked:
                         main_weapon_unlocked = True
                         Weapons["MWfull"]["collected"] = True
-                        inventory.remove_item("MWpiece1")
-                        inventory.remove_item("MWpiece2")
-                        inventory.remove_item("MWpiece3")
+                        for piece in ["MWpiece1", "MWpiece2", "MWpiece3"]:
+                            if piece in inventory.items:
+                                inventory.remove_item(piece)
                         inventory.add_item("MWfull")
                         main_weapon_popup_shown = True
                         popup_start_time = pygame.time.get_ticks()
@@ -556,6 +558,9 @@ while running:
                         weapon_popup = True
                         popup_start_time = pygame.time.get_ticks()
                         popup_message = weapon["popup_text"]
+
+                if not weapon_collected:
+                    object_interaction.try_interact(player_rect)
 
                         # Use currectly selected weapons
             if event.key == pygame.K_w:

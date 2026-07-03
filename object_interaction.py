@@ -95,10 +95,12 @@ class ObjectInteraction:
         # add item into inventory
         if isinstance(item_name, list):
             for item in item_name:
-                inventory.add_item(item)
+                if item not in inventory.items:
+                   inventory.add_item(item)
 
         else:
-            inventory.add_item(item_name)
+            if item_name not in inventory.items:
+                inventory.add_item(item_name)
 
         if zone_name: 
             self.zones[zone_name]["collected"] = True
@@ -128,7 +130,7 @@ class ObjectInteraction:
             y = 280
         
             for idx, item in enumerate(self.current_item):
-                img = self.images[self.current_item]
+                img = self.images[item]
                 rect = img.get_rect(center=(screen.get_width() // 2, 280))
                 screen.blit(img, rect)
 

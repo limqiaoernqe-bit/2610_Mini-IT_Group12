@@ -1,7 +1,10 @@
 {
-    "room206_unlocked": false,
-    "room210_unlocked": false,
-    "janitor_room_unlocked": false,
-    "janitor_defeated": false,
-    "stairs_unlocked": false
+    "room206_unlocked": true,
+    "room210_unlocked": true,
+    "janitor_room_unlocked": true,
+    "janitor_defeated": true,
+    "stairs_unlocked": true,
+    "room210_key_collected": false,
+    "janitor_key_collected": false,
+    "security_badge_collected": false
 }
