@@ -355,6 +355,10 @@ room113_mirror_rect = pygame.Rect(
 exit_key_collected = False
 # Mirror status
 mirror_active = False
+# Connecting door code system
+code_active = False
+code_input = ""
+code_message = ""
 
 
 
@@ -407,6 +411,7 @@ while running:
         40
     )
 
+    
     # Events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -414,18 +419,61 @@ while running:
 
         if event.type == pygame.KEYDOWN:
 
-            # OPEN MIRROR
+            # =========================
+            # R KEY (INTERACTIONS ONLY)
+            # =========================
             if event.key == pygame.K_r:
 
+                # Mirror interaction
                 if player_rect.colliderect(room113_mirror_rect):
                     mirror_active = True
-                    #mirror
                     print("Mirror activated")
 
-            # CLOSE MIRROR
+                # Start code input (Room 116-117 door)
+                if room116_117.check_collision(player_rect) and room116_117.locked:
+                    code_active = True
+                    code_input = ""
+                    code_message = "Enter code:"
+
+            # =========================
+            # ESC KEY (CLOSE MIRROR ONLY)
+            # =========================
             if event.key == pygame.K_ESCAPE:
                 if mirror_active:
                     mirror_active = False
+
+            # =========================
+            # C KEY (CLOSE UI ELEMENTS)
+            # =========================
+            if event.key == pygame.K_c:
+                code_active = False
+                active_puzzle = None
+
+                for clue in Clue.values():
+                    if clue["show_popup"]:
+                        clue["show_popup"] = False
+
+            # =========================
+            # CODE INPUT SYSTEM
+            # =========================
+            if code_active:
+
+                if event.key == pygame.K_BACKSPACE:
+                    code_input = code_input[:-1]
+
+                elif event.key == pygame.K_RETURN:
+                    if code_input == "E472":
+                        room116_117.locked = False
+                        room116_117_door.locked = False
+                        code_message = "Unlocked!"
+                    else:
+                        code_message = "Wrong code. Try again"
+                        code_input = ""
+
+                else:
+                    # only accept letters/numbers
+                    if event.unicode.isprintable():
+                        code_input += event.unicode
                 
                 
                 # Pick up exit door key
@@ -987,6 +1035,20 @@ while running:
 
         pygame.display.flip()
         continue
+
+    if code_active:
+        box = pygame.Rect(300, 250, 600, 200)
+
+        pygame.draw.rect(screen, (255, 255, 255), box)
+        pygame.draw.rect(screen, (0, 0, 0), box, 2)
+
+        # message
+        msg = font.render(code_message, True, (0, 0, 0))
+        screen.blit(msg, (box.x + 20, box.y + 20))
+
+        # input text
+        input_text = font.render(code_input, True, (0, 0, 0))
+        screen.blit(input_text, (box.x + 20, box.y + 80))
 
     pygame.display.flip()
 
