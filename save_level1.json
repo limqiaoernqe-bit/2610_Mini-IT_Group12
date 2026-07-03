@@ -4,6 +4,6 @@
     "room117_unlocked": false,
     "connecting_door_unlocked": false,
     "exit_door_unlocked": false,
-    "ghost_defeated": false,
-    "receptionist_defeated": false
+    "receptionist_defeated": false,
+    "ghost_defeated": false
 }
