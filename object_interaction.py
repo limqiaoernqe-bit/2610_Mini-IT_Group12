@@ -53,7 +53,6 @@ class ObjectInteraction:
         self.images = {
             "bolt_cutter": self.load("assets/bolt_cutter.png"),
             "toolbox": self.load("assets/toolbox.png"),
-            "flashlight": self.load("assets/flashlight.png"),
             "screwdriver": self.load("assets/screwdriver.png"),
             ROOM_210_KEY: self.load("assets/210key.png"),
             "116key": self.load("assets/116key.png"),

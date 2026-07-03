@@ -132,17 +132,30 @@ def use_weapon(name, player, player_rect, enemies, player_direction, inventory):
         active_traps.append({
             "rect": slippery_zone, 
             })
+        Weapons[name]["uses"] -= 1
+        if Weapons[name]["uses"] <= 0:
+            inventory.remove_item(name)
+            if player.held_weapon == name:
+                player.held_weapon = None
 
     elif name == "CleaningSpray":
         spray_sound.play()
+        attack_range = player_rect.inflate(80,80)
         for enemy in enemies:
-            if player_rect.colliderect(enemy.rect):
+            if attack_range.colliderect(enemy.rect):
                 enemy.weapon_effect("CleaningSpray")
+                Weapons[name]["uses"] -= 1 #only if it hits
+                if Weapons[name]["uses"] <= 0:
+                    inventory.remove_item(name)
+                    if player.held_weapon == name:
+                        player.held_weapon = None
+                return
 
     elif name == "BaseballBat":
         swing_sound.play()
+        attack_range = player_rect.inflate(80,80)
         for enemy in enemies:
-            if player_rect.colliderect(enemy.rect):
+            if attack_range.colliderect(enemy.rect):
                 enemy.weapon_effect("BaseballBat")
 
     elif name == "MWfull":

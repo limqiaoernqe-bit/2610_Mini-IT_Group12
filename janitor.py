@@ -228,9 +228,9 @@ class Janitor:
             return
         
         if self.state == "slowed":
-            if pygame.time.get_ticks() - self.stun_timer > 5000:
+            if pygame.time.get_ticks() - self.stun_timer > 20000:
                 self.speed = self.original_speed
-                self.state = "chasing"
+                self.state = "search" if self.last_seen else "patrol"
 
         distance_x = player_x - self.x
         distance_y = player_y - self.y
@@ -521,7 +521,10 @@ class Janitor:
             self.state = "slowed" 
             self.stun_timer = pygame.time.get_ticks()
             self.original_speed = self.speed
-            self.speed = max(0.5, self.speed - 0.5 ) #speed reduced by 0.5
+            self.speed = max(0.5, self.speed * 0.5 ) 
+            self.popup_message = "The janitor is slowed for 20 seconds"
+            self.popup_start_time = pygame.time.get_ticks()
+            self.popup_duration = 3000  # show for 3 seconds
 
         elif effect == "BaseballBat":
             self.state = "defeated"

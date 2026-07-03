@@ -221,7 +221,7 @@ class Receptionist:
             return
         
         if self.state == "slowed":
-            if pygame.time.get_ticks() - self.stun_timer > 5000:
+            if pygame.time.get_ticks() - self.stun_timer > 20000:
                 self.speed = self.original_speed
                 self.state = "chasing"
                
@@ -493,6 +493,10 @@ class Receptionist:
             self.stun_timer = pygame.time.get_ticks()
             self.original_speed = self.speed 
             self.speed = max(0.5, self.speed - 0.5)
+            # Trigger popup message
+            self.popup_message = "The receptionist is now gone for 20 seconds"
+            self.popup_start_time = pygame.time.get_ticks()
+            self.popup_duration = 3000  # show for 3 seconds
 
         elif effect == "KitchenKnife":
             self.state = "defeated"

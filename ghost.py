@@ -100,3 +100,6 @@ class Ghost:
         elif effect == "Salt":
             self.state = "blocked"
             self.blocked_until = pygame.time.get_ticks() + 40000
+            self.popup_message = "The ghost is blocked for 40 seconds"
+            self.popup_start_time = pygame.time.get_ticks()
+            self.popup_duration = 3000  # show for 3 seconds
