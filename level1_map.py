@@ -359,6 +359,8 @@ mirror_active = False
 code_active = False
 code_input = ""
 code_message = ""
+# Ending cutscene
+ending_triggered = False
 
 
 
@@ -509,6 +511,8 @@ while running:
                     running = False
                 else:                
                     object_interaction.try_interact(player_rect)
+
+
 
                 # puzzle
                 if player_rect.colliderect(PuzzleL1["KeyArea"]["zone"]):
@@ -706,6 +710,19 @@ while running:
     # Camera System
     camera_x = player.x - screen_width // 2
     camera_y = player.y - screen_height // 2
+
+    scene_manager.update()
+#ending
+    if (
+        receptionist.defeat
+        and ghost.defeat
+        and not room116_door.is_locked()
+        and not room117_door.is_locked()
+        and EXIT_DOOR_KEY in inventory.items
+        and not ending_triggered
+    ):
+        ending_triggered = True
+        print("ENDING READY")
 
     # Draw everything
     screen.fill((0, 0, 0))
@@ -905,19 +922,61 @@ while running:
             save_level1()
 
     # Press E to unlock Exit Door
-    if exit_trigger.check_collision(player_rect):
-        
-        if(
-            EXIT_DOOR_KEY in inventory.items
-            and keys[pygame.K_e] 
-            and exit_door.is_locked()
+        # =========================
+        # ENDING READY CHECK (ALWAYS RUNS)
+        # =========================
+        if (
+            receptionist.defeat
+            and ghost.defeat
+            and not room116_door.is_locked()
+            and not room117_door.is_locked()
+            and EXIT_DOOR_KEY in inventory.items
         ):
-            inventory.use_item(
-                EXIT_DOOR_KEY,
-                exit_door
-            )
+            ending_triggered = True
 
 
+        # =========================
+        # EXIT DOOR INTERACTION
+        # =========================
+    if exit_trigger.check_collision(player_rect):
+
+        # 1. ENDING (HIGHEST PRIORITY)
+        if (
+            ending_triggered
+            and keys[pygame.K_e]
+            and EXIT_DOOR_KEY in inventory.items
+            and not exit_door.is_locked()
+        ):
+            print("ENDING STARTED")
+
+            save_level1()
+
+            save_data = {
+                "items": inventory.items,
+                "uses": {
+                    name: Weapons[name].get("uses", None)
+                    for name in inventory.items
+                    if name in Weapons
+                }
+            }
+
+            with open("save_inventory.json", "w") as f:
+                json.dump(save_data, f)
+
+            on_game_end()
+
+            pygame.quit()
+            subprocess.run(["python", "ending_scene.py"])
+            running = False
+
+        # 2. NORMAL UNLOCK
+        elif (
+            EXIT_DOOR_KEY in inventory.items
+            and keys[pygame.K_e]
+            and exit_door.is_locked()
+            and not ending_triggered
+        ):
+            inventory.use_item(EXIT_DOOR_KEY, exit_door)
             save_level1()
 
     # Sync trigger status with door status
