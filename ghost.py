@@ -94,6 +94,9 @@ class Ghost:
         if effect == "MWfull":
             self.state = "defeated"
             self.defeat = True
+            self.popup_message = "Ghost Defeated!"
+            self.popup_start_time = pygame.time.get_ticks()
+            self.popup_duration = 3000
 
             # save ghost defeated
             try:

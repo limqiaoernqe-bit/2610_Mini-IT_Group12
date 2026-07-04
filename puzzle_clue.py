@@ -58,21 +58,21 @@ ClueL1 = {
     }
 }  
 
-def show_puzzle_prompt(screen, font, item, marker_x, marker_y, camera_x=0, camera_y=0):
-   # Show R 
-   if not item["collected"]:
-      # position above puzzle zone
-      draw_x = marker_x - camera_x 
-      draw_y = marker_y - camera_y
-
-      # Draw circle around R
-      pygame.draw.circle(screen, (153,204,255), (draw_x, draw_y), 20)
-
-      text = font.render(item["prompt"], True, (0,0,0))
-      text_rect = text.get_rect(center=(draw_x, draw_y))
-      screen.blit(text, text_rect)
-      return True
-   return False
+def show_puzzle_prompt(screen, font, player_rect, item, marker_x, marker_y, camera_x=0, camera_y=0):
+   
+   # Don't show anything if puzzle already completed
+   if item["collected"]:
+       return 
+   
+   draw_x = marker_x - camera_x 
+   draw_y = marker_y - camera_y
+   
+   # Draw circle around R
+   pygame.draw.circle(screen, (153,204,255), (draw_x, draw_y), 20)
+   
+   text = font.render(item["prompt"], True, (0,0,0))
+   text_rect = text.get_rect(center=(draw_x, draw_y))
+   screen.blit(text, text_rect)
 
 def show_clue_prompt(screen,font,player_rect,clue, camera_x=0, camera_y=0):
     if clue["active"] and player_rect.colliderect(clue["zone"]):

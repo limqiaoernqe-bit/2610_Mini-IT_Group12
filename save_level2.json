@@ -11,5 +11,6 @@
     "toolbox_collected": false,
     "stool_collected": false,
     "box_collected": false,
-    "locker_collected": false
+    "locker_collected": false,
+    "treadmill_completed": false
 }

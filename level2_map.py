@@ -5,6 +5,7 @@ import pytmx
 import subprocess
 
 import json
+import sys
 
 from inventory import game_inventory as inventory, ROOM_210_KEY, ROOM_206_KEY, JANITOR_KEY, SECURITY_BADGE, BOLT_CUTTER
 from player import Player
@@ -17,6 +18,7 @@ from janitor import Janitor
 from object_interaction import ObjectInteraction
 from scenes.hotelscene2 import on_chloe_saved, on_jay_saved, scene_manager
 from gameover_system import GameOverSystem
+from reset_save import reset_game
 
 game_over_system = GameOverSystem(lives=3, spawn_point=(2160, 2160))  # maintenance room
 heart_img = pygame.image.load("assets/heart.png").convert_alpha()
@@ -327,6 +329,11 @@ object_interaction.zones["locker"]["collected"] = level2_save.get(
     False
 )
 
+Puzzle["Treadmill"]["collected"] = level2_save.get(
+    "treadmill_completed",
+    False
+)
+
 # Save Level 2 progress
 def save_level2():
     data = {
@@ -345,7 +352,9 @@ def save_level2():
         "toolbox_collected": object_interaction.zones["toolbox"]["collected"],
         "stool_collected": object_interaction.zones["stool"]["collected"],
         "box_collected": object_interaction.zones["box"]["collected"],
-        "locker_collected": object_interaction.zones["locker"]["collected"]
+        "locker_collected": object_interaction.zones["locker"]["collected"],
+
+        "treadmill_completed": Puzzle["Treadmill"]["collected"]
     }
 
     with open("save_level2.json", "w") as f:
@@ -358,7 +367,6 @@ spawn_mode = "maintenance"
 
 # Coming back from level 1
 try:
-    import sys
     if len (sys.argv) > 1:
         spawn_mode = sys.argv[1]
 except:
@@ -460,13 +468,18 @@ while running:
             result = game_over_system.handle_click(event.pos, player, inventory, Weapons, object_interaction, Puzzle, Clue)
 
             if result == "retry":
-                player.x, player.y = game_over_system.spawn_point
+                retry_mode = True
+                reset_game() # reset all save files and restart the game
+                pygame.quit()  # close current window game
+                subprocess.run(["python", "level2_map.py"])  # restart level 2 
+                sys.exit()  # exit the current script
 
             elif result == "quit":
+                reset_game() # reset all save files and restart the game
                 pygame.quit()
                 import sys
                 subprocess.run([sys.executable, "main.py"])
-                exit()
+                sys.exit()
         if event.type == pygame.QUIT:
             running = False
 
@@ -475,7 +488,10 @@ while running:
             if event.key == pygame.K_r:
 
                 # Open puzzle
-                if player_rect.colliderect(Puzzle["Treadmill"]["zone"]):
+                if(
+                    player_rect.colliderect(Puzzle["Treadmill"]["zone"])
+                    and not Puzzle["Treadmill"]["collected"]    
+                ):
                     Puzzle["Treadmill"]["active"] = True
 
                 # Pick up Room 210 Key
@@ -572,6 +588,10 @@ while running:
         # puzzle 
         if active_puzzle and active_puzzle["active"]:
             handle_puzzle_input(event, active_puzzle, inventory, object_interaction)
+
+        # Save immediately after the puzzle is completed
+        if active_puzzle and active_puzzle["collected"]:
+            save_level2()  # Save after completing the puzzle
 
         # clue
         if event.type == pygame.KEYDOWN:
@@ -692,10 +712,6 @@ while running:
             stairs_trigger.locked = False
             save_level2()
 
-    # Camera System
-    camera_x = player.x - screen_width // 2
-    camera_y = player.y - screen_height // 2
-
     # ===========================
     # GAME OVER SCREEN
     # ===========================
@@ -719,7 +735,11 @@ while running:
             result = game_over_system.handle_click(mouse_pos, player, inventory, Weapons, object_interaction, Puzzle, Clue)
 
             if result == "retry":
-                player.x, player.y = game_over_system.spawn_point
+                retry_mode = True
+                reset_game()
+                pygame.quit()
+                subprocess.run([sys.executable, "level2_map.py"])
+                sys.exit()
 
             elif result == "quit":
                 pygame.quit()
@@ -907,15 +927,16 @@ while running:
     for room in room_triggers:
 
         # puzzle trigger 
-        if player_rect.colliderect(Puzzle["Treadmill"]["zone"]):
+        treadmill_puzzle = Puzzle["Treadmill"]
+
+        if not treadmill_puzzle["collected"]:
+            if player_rect.colliderect(treadmill_puzzle["zone"]):
                 if keys[pygame.K_r]:
-                    treadmill_puzzle = Puzzle["Treadmill"]
-                    if not treadmill_puzzle["collected"]:
-                        treadmill_puzzle["active"] = True
-                        active_puzzle = treadmill_puzzle
+                    treadmill_puzzle["active"] = True
+                    active_puzzle = treadmill_puzzle
 
             # puzzle prompt
-        show_puzzle_prompt(screen,font, Puzzle["Treadmill"],255, 747, camera_x, camera_y)
+        show_puzzle_prompt(screen,font, player_rect, treadmill_puzzle, treadmill_puzzle["zone"].centerx, treadmill_puzzle["zone"].centery, camera_x, camera_y)
 
         if active_puzzle and active_puzzle["active"]:
                 puzzle_screen(active_puzzle, screen, font)
@@ -1067,4 +1088,4 @@ while running:
 pygame.quit()
 
 if go_to_level1:
-    subprocess.run(["python", "level1_map.py", "stairs"])
+    subprocess.run([sys.executable, "level1_map.py", "stairs"])

@@ -2,6 +2,8 @@ import pygame
 import pytmx
 import subprocess
 from gameover_system import GameOverSystem
+from reset_save import reset_game, reset_level1
+import sys
 
 from inventory import game_inventory as inventory, SECURITY_BADGE, ROOM116_KEY, ROOM117_KEY, ROOM116_117_CODE, EXIT_DOOR_KEY
 from ghost import Ghost
@@ -53,7 +55,8 @@ except (FileNotFoundError, json.JSONDecodeError):
         "connecting_door_unlocked": False,
         "exit_door_unlocked": False,
         "receptionist_defeated": False,
-        "ghost_defeated": False
+        "ghost_defeated": False,
+        "exit_key_given": False
     }
 
 heart_img = pygame.image.load("assets/heart.png").convert_alpha()
@@ -242,7 +245,9 @@ def save_level1():
         "exit_door_unlocked": not exit_door.is_locked(),
 
         "receptionist_defeated": receptionist.defeat,
-        "ghost_defeated": ghost.defeat
+        "ghost_defeated": ghost.defeat,
+
+        "exit_key_given": level1_save.get("exit_key_given", False)
     }
 
     with open("save_level1.json", "w") as f:
@@ -339,14 +344,6 @@ stairs_to_level2 = RoomTrigger(
 )
 
 
-# Static item hitboxes (keys placed at fixed map coordinates)
-exit_key_rect = pygame.Rect(
-    2492,
-    1752,
-    39,
-    37
-)
-
 # james mirror puzzle code
 room113_mirror_rect = pygame.Rect(
     1403,
@@ -355,8 +352,6 @@ room113_mirror_rect = pygame.Rect(
     150    # height (adjust if needed)
 )
 
-# Key collection status
-exit_key_collected = False
 # Mirror status
 mirror_active = False
 
@@ -435,14 +430,6 @@ while running:
             # Pick up exit door key
             if event.key == pygame.K_r:
 
-                if (
-                    player_rect.colliderect(exit_key_rect)
-                    and not exit_key_collected
-                ):
-                    inventory.add_item(EXIT_DOOR_KEY)
-                    exit_key_collected = True
-
-
                 # Go back to level 2                
                 if stairs_to_level2.check_collision(player_rect):
                     print("Going back to Level 2...")
@@ -472,7 +459,10 @@ while running:
                     object_interaction.try_interact(player_rect)
 
                 # puzzle
-                if player_rect.colliderect(PuzzleL1["KeyArea"]["zone"]):
+                if(
+                    player_rect.colliderect(PuzzleL1["KeyArea"]["zone"])
+                    and not PuzzleL1["KeyArea"]["collected"]
+                ):
                     PuzzleL1["KeyArea"]["active"] = True
                     active_puzzle = PuzzleL1["KeyArea"]
         
@@ -542,17 +532,9 @@ while running:
                         popup_message = weapon["popup_text"]
                     break
 
-               if(
-                   not weapon_collected
-                   and player_rect.colliderect(PuzzleL1["KeyArea"]["zone"])
-                   and not PuzzleL1["KeyArea"]["collected"]
-                ):
-                   PuzzleL1["KeyArea"]["active"] = True
-                   active_puzzle = PuzzleL1["KeyArea"]
-
                         # Use currectly selected weapons
            if event.key == pygame.K_w:
-                if event.key == pygame.K_w and player.held_weapon:
+                if player.held_weapon:
                     use_weapon(
                         player.held_weapon,
                         player,
@@ -590,12 +572,6 @@ while running:
 
     if exit_door.is_locked():
         active_walls += exit_door_walls
-
-            # Player Movement
-    if game_over_system.is_game_over():
-        keys = None
-    else:
-        keys = pygame.key.get_pressed()
     
     if not game_over_system.is_game_over():
         keys = pygame.key.get_pressed()
@@ -658,15 +634,20 @@ while running:
     if not receptionist.defeat and receptionist.rect.colliderect(player_rect):
         game_over_system.on_caught(player)
 
-    # Give Exit Key after both enemies are defeated
+    # Give Exit Key after ALL objectives are completed
     if(
         receptionist.defeat
         and ghost.defeat
-        and EXIT_DOOR_KEY not in inventory.items
+        and not room116_door.is_locked()
+        and not room116_117_door.is_locked()
+        and not level1_save.get("exit_key_given", False)
     ):
         inventory.add_item(EXIT_DOOR_KEY)
 
-        pop_up_message = "You got the Exit Key!"
+        # Mark that the Exit Key has already been awarded
+        level1_save["exit_key_given"] = True
+
+        popup_message = "You got the Exit Key!"
         weapon_popup = True
         popup_start_time = pygame.time.get_ticks()
 
@@ -699,6 +680,11 @@ while running:
     )
     for enemy in [receptionist, ghost]:
         if hasattr(enemy, "popup_message") and enemy.popup_message:
+
+            # Hide weapon popup while enemy popup is showing
+            weapon_popup = False
+            main_weapon_popup_shown = False
+
             if pygame.time.get_ticks() - enemy.popup_start_time < enemy.popup_duration:
                popup_rect = pygame.Rect(400, 300, 300, 100)
                pygame.draw.rect(screen, (255,255,255), popup_rect)
@@ -775,7 +761,7 @@ while running:
     draw_inventory(screen, inventory, Weapons, object_interaction, screen_width, screen_height)
 
             # puzzle prompt
-    show_puzzle_prompt(screen,font, PuzzleL1["KeyArea"], PuzzleL1["KeyArea"]["zone"].centerx, PuzzleL1["KeyArea"]["zone"].centery,camera_x, camera_y)
+    show_puzzle_prompt(screen,font, player_rect, PuzzleL1["KeyArea"], PuzzleL1["KeyArea"]["zone"].centerx, PuzzleL1["KeyArea"]["zone"].centery,camera_x, camera_y)
 
     if active_puzzle and active_puzzle["active"]:
         puzzle_screen(active_puzzle, screen, font, screen_width, screen_height)
@@ -812,11 +798,16 @@ while running:
     # Press E to unlock Security Room
     if security_room.check_collision(player_rect):
         
-        if keys[pygame.K_e]:
+        if (
+            SECURITY_BADGE in inventory.items
+            and keys[pygame.K_e]
+            and security_door.is_locked()
+        ):
             inventory.use_item(
                 SECURITY_BADGE,
                 security_door
             )
+
 
             # save after unlocking security room
             save_level1()
@@ -865,6 +856,7 @@ while running:
         if(
             ROOM116_117_CODE in inventory.items
             and keys[pygame.K_e]
+            and room116_117_door.is_locked()
         ):
             inventory.use_item(
                 ROOM116_117_CODE,
@@ -886,6 +878,7 @@ while running:
                 exit_door
             )
 
+            on_game_end()  # Trigger game end cutscene
 
             save_level1()
 
@@ -973,12 +966,16 @@ while running:
                 result = game_over_system.handle_click(event.pos, player, inventory, Weapons, object_interaction, PuzzleL1, Clue)
 
                 if result == "retry":
-                    player.x, player.y = game_over_system.spawn_point
+                    reset_level1() # reset all save files and restart the game
+                    pygame.quit()  # close current window game
+                    subprocess.run([sys.executable, "level1_map.py"])  # restart level 1
+                    sys.exit()  # exit the current script
 
                 elif result == "quit":
+                    reset_game() # reset all save files and restart the game
                     pygame.quit()
-                    subprocess.run(["python3", "main.py"])
-                    exit()
+                    subprocess.run([sys.executable, "main.py"])
+                    sys.exit()
 
         pygame.display.flip()
         continue
