@@ -273,19 +273,14 @@ def save_level1():
 def check_level1_completion():
     global weapon_popup, popup_message, popup_start_time
 
-    # Already gave the key before
     if level1_save.get("exit_key_given", False):
         return
 
-    # Check ALL objectives
-    if (
-        receptionist.defeat
-        and ghost.defeat
-        and scene_manager.finished["mark"]
-        and scene_manager.finished["james"]
-    ):
+    # SIMPLE WIN CONDITION
+    if receptionist.defeat and ghost.defeat:
 
-        inventory.add_item(EXIT_DOOR_KEY)
+        if EXIT_DOOR_KEY not in inventory.items:
+            inventory.add_item(EXIT_DOOR_KEY)
 
         level1_save["exit_key_given"] = True
 
@@ -294,7 +289,6 @@ def check_level1_completion():
         popup_start_time = pygame.time.get_ticks()
 
         save_level1()
-
 
 # Restore doors
 security_door.locked = not level1_save["security_room_unlocked"]
@@ -702,6 +696,8 @@ while running:
                 player.x,
                 player.y
             )
+
+    check_level1_completion()
 
     # GAME OVER CHECK (ghost collision)
     ghost_rect = pygame.Rect(
@@ -1166,8 +1162,6 @@ while running:
                     subprocess.run([sys.executable, "main.py"])
                     sys.exit()
 
-        # Check if player has completed all objectives to unlock the exit key
-        check_level1_completion()
         pygame.display.flip()
         continue
 # mirror
