@@ -380,6 +380,12 @@ code_active = False
 code_input = ""
 code_message = ""
 
+# success popup
+success_popup = False
+success_popup_start = 0
+
+play_james_scene = False
+
 # Ending cutscene
 ending_triggered = False
 
@@ -468,6 +474,16 @@ while running:
         # =========================
         elif event.type == pygame.KEYDOWN:
 
+            # Puzzle input
+            if active_puzzle and active_puzzle["active"]:
+                handle_puzzle_input(
+                    event,
+                    active_puzzle,
+                    inventory,
+                    object_interaction
+                )
+                continue
+
             # CLOSE UI
             if event.key == pygame.K_ESCAPE:
                 mirror_active = False
@@ -488,14 +504,20 @@ while running:
                     if code_input == "E472":
                         room116_117.locked = False
                         room116_117_door.locked = False
-                        code_message = "Unlocked!"
+                        save_level1()
+                        
                         code_active = False
+
+                        success_popup = True
+                        success_popup_start = pygame.time.get_ticks()
+
+                        play_james_scene = True
                     else:
                         code_message = "Wrong code"
                         code_input = ""
 
                         # Use currectly selected weapons
-           if event.key == pygame.K_w:
+            if event.key == pygame.K_w:
                 if player.held_weapon:
                     use_weapon(
                         player.held_weapon,
@@ -514,7 +536,7 @@ while running:
             # =========================
             # NORMAL GAME INPUT
             # =========================
-
+            
             if event.key == pygame.K_r:
 
                 # =========================
@@ -523,7 +545,7 @@ while running:
                 if room116_117.check_collision(player_rect) and room116_117.locked:
                     code_active = True
                     code_input = ""
-                    code_message = "Enter code:"
+                    code_message = "The code might be hidden somewhere...\nHint: The mirror in Room 113 never lies....\nInput the code:"
                     continue
 
                 # =========================
@@ -784,15 +806,37 @@ while running:
     # CODE INPUT UI
     # =========================
     if code_active:
-        box = pygame.Rect(300, 250, 600, 200)
+        box = pygame.Rect(300, 250, 650, 220)
         pygame.draw.rect(screen, (255, 255, 255), box)
         pygame.draw.rect(screen, (0, 0, 0), box, 2)
 
-        msg = font.render(code_message, True, (0, 0, 0))
-        screen.blit(msg, (box.x + 20, box.y + 20))
+        # Draw each instruction line
+        lines = code_message.split("\n")
+
+        for i, line in enumerate(lines):
+            msg = font.render(line, True, (0, 0, 0))
+            screen.blit(msg, (box.x + 20, box.y + 20 + i * 35))
+
+        # Draw player input below all instructions
+        input_y = box.y + 20 + len(lines) * 35 + 15
 
         input_text = font.render(code_input, True, (0, 0, 0))
-        screen.blit(input_text, (box.x + 20, box.y + 80))
+        screen.blit(input_text, (box.x + 20, input_y))
+
+    # Success popup for correct code
+    if success_popup:
+        popup_rect = pygame.Rect(340, 250, 600, 140)
+        pygame.draw.rect(screen, (255, 255, 255), popup_rect)
+        pygame.draw.rect(screen, (0, 180, 0), popup_rect, 3)
+        text = font.render("Correct! The door is now unlocked.", True, (0, 120, 0))
+        text_rect = text.get_rect(center=popup_rect.center)
+        screen.blit(text, text_rect)
+
+        if pygame.time.get_ticks() - success_popup_start > 3000:  # Show for 3 seconds
+            success_popup = False
+            if play_james_scene:
+                play_james_scene = False
+                on_james_saved()
 
 # WEAPON PART
     # hide popup
@@ -923,25 +967,6 @@ while running:
 
             # Trigger Mark's cutscene
             on_mark_saved()
-
-    # Press E to unlock Room 117 (James's room)
-    if room_117.check_collision(player_rect):
-        
-        if(
-            ROOM117_KEY in inventory.items
-            and keys[pygame.K_e] 
-            and room117_door.is_locked()
-        ):
-            inventory.use_item(
-                ROOM117_KEY,
-                room117_door
-            )
-
-            # save after unlocking room 117
-            save_level1()
-
-            # Trigger James's cutscene
-            on_james_saved()
 
      # Press E to unlock Connecting Door
     if room116_117.check_collision(player_rect):
