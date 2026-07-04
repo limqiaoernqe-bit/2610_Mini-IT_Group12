@@ -258,7 +258,7 @@ exit_door.locked = not level1_save["exit_door_unlocked"]
 
 # Level 1 Room Triggers
 security_room = RoomTrigger(
-    pygame.Rect(2305, 2037, 48, 168),
+    pygame.Rect(2298, 2034, 106, 176),
     "Security Room",
     locked=True
 )
@@ -321,7 +321,7 @@ room_117 = RoomTrigger(
 )
 
 room116_117 = RoomTrigger(
-    pygame.Rect(306, 622, 103, 125),
+    pygame.Rect(329, 611, 109, 141),
     "Connecting Door",
     locked=True
 )
