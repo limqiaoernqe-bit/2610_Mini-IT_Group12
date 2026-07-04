@@ -31,6 +31,11 @@ popup_message = ""
 main_weapon_unlocked = False
 main_weapon_popup_shown = False
 
+hint_popup = False
+hint_popup_message = ""
+hint_popup_start_time = 0
+hint_popup_duration = 3000      # milliseconds
+
 retry_mode = False
 
 def draw_text(surface, text, rect, font, color):
@@ -85,6 +90,11 @@ try:
         for weapon_name, uses in save_data.get("uses", {}).items():
             if weapon_name in Weapons:
                 Weapons[weapon_name]["uses"] = uses
+
+        # Restore collected status
+        for weapon_name, collected in save_data.get("collected", {}).items():
+            if weapon_name in Weapons:
+                Weapons[weapon_name]["collected"] = collected
 
 except (FileNotFoundError, json.JSONDecodeError):
     pass
@@ -480,11 +490,14 @@ while running:
                         import json
                         if not retry_mode: 
                             save_data = {
-                               "items": inventory.items,
-                               "uses": {
-                                   name: Weapons[name].get("uses", None)
-                                   for name in inventory.items
-                                   if name in Weapons
+                                "items": inventory.items,
+                                "uses": {
+                                    name: Weapons[name].get("uses", None)
+                                    for name in Weapons
+                                },
+                                "collected":{
+                                    name: Weapons[name]["collected"]
+                                    for name in Weapons
                                 }
                             }
                             with open("save_inventory.json", "w") as f:
@@ -546,29 +559,30 @@ while running:
 
         # Collect Weapons
             if event.key == pygame.K_r:
-              weapon_collected = False
-              for name, weapon in Weapons.items():
-                if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
-                    weapon["collected"] = True
-                    Weapons[name]["collected"] = True
-                    unlock_sound.play()
-                    inventory.add_item(name)
-                    weapon_collected = True
+                weapon_collected = False
+                for name, weapon in L2Weapons.items():
+                    if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
+                        Weapons[name]["collected"] = True
+                        unlock_sound.play()
+                        inventory.add_item(name)
+                        weapon_collected = True
 
-                    if pieces_collected() == 3 and not main_weapon_unlocked:
-                        main_weapon_unlocked = True
-                        Weapons["MWfull"]["collected"] = True
-                        for piece in ["MWpiece1", "MWpiece2", "MWpiece3"]:
-                            if piece in inventory.items:
-                                inventory.remove_item(piece)
-                        inventory.add_item("MWfull")
-                        main_weapon_popup_shown = True
-                        popup_start_time = pygame.time.get_ticks()
-                        mw_sound.play()
-                    else:
-                        weapon_popup = True
-                        popup_start_time = pygame.time.get_ticks()
-                        popup_message = weapon["popup_text"]
+                        if pieces_collected() == 3 and not main_weapon_unlocked:
+                            main_weapon_unlocked = True
+                            Weapons["MWfull"]["collected"] = True
+                            for piece in ["MWpiece1", "MWpiece2", "MWpiece3"]:
+                                if piece in inventory.items:
+                                    inventory.remove_item(piece)
+                            inventory.add_item("MWfull")
+                            main_weapon_popup_shown = True
+                            popup_start_time = pygame.time.get_ticks()
+                            mw_sound.play()
+                        else:
+                            weapon_popup = True
+                            popup_start_time = pygame.time.get_ticks()
+                            popup_message = weapon["popup_text"]
+
+                        break
 
                 if not weapon_collected:
                     object_interaction.try_interact(player_rect)
@@ -818,6 +832,10 @@ while running:
 
             save_level2()
 
+            hint_popup = True
+            hint_popup_message = "There's something in the locker..."
+            hint_popup_start_time = pygame.time.get_ticks()
+
     # Press E to unlock Locker
     locker_zone = object_interaction.zones["locker"]["zone"]
 
@@ -996,6 +1014,24 @@ while running:
             screen.blit(text_surface, text_rect)
         else:
             janitor.popup_message = None
+
+    # Locker hint popup
+    if hint_popup:
+        if pygame.time.get_ticks() - hint_popup_start_time < hint_popup_duration:
+            popup_width = 500
+            popup_height = 120
+            popup_x = (screen_width - popup_width) // 2
+            popup_y = 80
+            popup_rect = pygame.Rect(popup_x, popup_y, popup_width, popup_height)
+
+            pygame.draw.rect(screen, (255,255,255), popup_rect)
+            pygame.draw.rect(screen, (0,0,0), popup_rect, 3)
+
+            text = font.render(hint_popup_message, True, (0,0,0))
+            text_rect = text.get_rect(center=popup_rect.center)
+            screen.blit(text, text_rect)
+        else:
+            hint_popup = False
 
     pygame.display.flip()
 

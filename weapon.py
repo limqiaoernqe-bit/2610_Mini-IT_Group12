@@ -117,6 +117,10 @@ def pieces_collected ():
 
 # weapon use
 def use_weapon(name, player, player_rect, enemies, player_direction, inventory):
+
+    # Weapon pieces cannot be used
+    if name in ["MWpiece1", "MWpiece2", "MWpiece3"]:
+        return     
     if "uses" in Weapons[name]:
     # everytime player use it the uses decrease
        Weapons[name]["uses"] -=1

@@ -70,7 +70,10 @@ class ObjectInteraction:
 
             zone = data["zone"]
 
-            if player_rect.colliderect(zone):
+            if(
+                player_rect.colliderect(zone)
+                and not data["collected"]
+            ):
 
                 if name in self.items:
                     self.trigger(self.items[name], name)
