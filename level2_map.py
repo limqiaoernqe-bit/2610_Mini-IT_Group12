@@ -70,6 +70,10 @@ screen_height = 720
 
 pygame.init()
 pygame.font.init()
+pygame.mixer.init()
+
+pygame.mixer.music.load("assets/arthurhale-scary-horror-music-2-516875.mp3")
+pygame.mixer.music.play(-1)
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Level 2")

@@ -7,6 +7,12 @@ from scenes.scene_manager import SceneManager
 from scenes.hotelscene1 import HotelScene1
 
 pygame.init()
+pygame.mixer.init()
+
+# load and start background music ONCE
+pygame.mixer.music.load("assets/arthurhale-scary-horror-music-2-516875.mp3")
+pygame.mixer.music.set_volume(0.5)  # optional
+pygame.mixer.music.play(-1)  # -1 = infinite loop
 
 # screen setup
 screen_width = 1280

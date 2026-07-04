@@ -1,6 +1,7 @@
 import pygame
 import pytmx
 import subprocess
+import sys
 from gameover_system import GameOverSystem
 from reset_save import reset_game, reset_level1
 import sys
@@ -105,6 +106,13 @@ screen_height = 720
 
 pygame.init()
 
+pygame.mixer.init()
+
+pygame.mixer.music.load("assets/arthurhale-scary-horror-music-2-516875.mp3")
+pygame.mixer.music.play(-1)
+
+pygame.key.start_text_input()
+
 screen = pygame.display.set_mode((screen_width, screen_height))
 mirror_img = pygame.image.load("assets/mirror.png").convert()
 mirror_img = pygame.transform.scale(mirror_img, (screen_width, screen_height))
@@ -181,7 +189,7 @@ for layer in tmx_data.visible_layers:
 # Create player
 player = Player()
 
-game_over_system = GameOverSystem(lives=3, spawn_point=(1776, 2784))
+
 
 # Receptionist spawn position
 receptionist = Receptionist(
@@ -195,6 +203,15 @@ ghost = Ghost(
     864,
     864
 )
+
+# =========================
+# STORE ORIGINAL SPAWNS
+# =========================
+player_spawn = (1776, 2784)
+receptionist_spawn = (2776, 1963)
+ghost_spawn = (864, 864)
+
+game_over_system = GameOverSystem(lives=3, spawn_point=player_spawn)
 
 receptionist.defeat = level1_save["receptionist_defeated"]
 ghost.defeat = level1_save["ghost_defeated"]
@@ -352,8 +369,19 @@ room113_mirror_rect = pygame.Rect(
     150    # height (adjust if needed)
 )
 
+# Key collection status
+exit_key_collected = False
+
 # Mirror status
 mirror_active = False
+
+#input code
+code_active = False
+code_input = ""
+code_message = ""
+
+# Ending cutscene
+ending_triggered = False
 
 
 
@@ -406,131 +434,65 @@ while running:
         40
     )
 
-    # Events
+
+    # =========================
+    # EVENTS (FULL FIX - ALL FEATURES INCLUDED)
+    # =========================
+
+
     for event in pygame.event.get():
+
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == pygame.KEYDOWN:
+        # =========================
+        # MOUSE EVENTS
+        # =========================
+        elif event.type == pygame.MOUSEBUTTONDOWN:
 
-            # OPEN MIRROR
-            if event.key == pygame.K_r:
-
-                if player_rect.colliderect(room113_mirror_rect):
-                    mirror_active = True
-                    #mirror
-                    print("Mirror activated")
-
-            # CLOSE MIRROR
-            if event.key == pygame.K_ESCAPE:
-                if mirror_active:
-                    mirror_active = False
-                
-                
-            # Pick up exit door key
-            if event.key == pygame.K_r:
-
-                # Go back to level 2                
-                if stairs_to_level2.check_collision(player_rect):
-                    print("Going back to Level 2...")
-
-                    # Close level 1 and open level 2
-                    save_level1()
-
-                    save_data = {
-                        "items": inventory.items,
-                        "uses": {
-                            name: Weapons[name].get("uses", None)
-                            for name in Weapons
-                        },
-                        "collected":{
-                            name: Weapons[name]["collected"]
-                            for name in Weapons
-                        }
-                    }
-
-                    with open("save_inventory.json", "w") as f:
-                        json.dump(save_data, f)
-
-                    pygame.quit()
-                    subprocess.run(["python", "level2_map.py", "stairs"])
-                    running = False
-                else:                
-                    object_interaction.try_interact(player_rect)
-
-                # puzzle
-                if(
-                    player_rect.colliderect(PuzzleL1["KeyArea"]["zone"])
-                    and not PuzzleL1["KeyArea"]["collected"]
-                ):
-                    PuzzleL1["KeyArea"]["active"] = True
-                    active_puzzle = PuzzleL1["KeyArea"]
-        
-                # clue 
-                for clue in Clue.values():
-                    if clue["show_prompt"] and clue ["active"]:
-                        clue["show_popup"] = True
-                        clue["active"] = False
-            if event.key == pygame.K_c:
-                for clue in Clue.values():
-                    if clue ["show_popup"]:
-                        clue["show_popup"] = False
-
-            # close puzzle when C
-            if event.key == pygame.K_c and active_puzzle and active_puzzle["active"]:
-                active_puzzle["active"] = False
-
-            if active_puzzle and active_puzzle["active"]:
-                handle_puzzle_input(event, active_puzzle, inventory, object_interaction)
-
-            if event.key == pygame.K_SPACE:
-                scene_manager.update()
-
-    
-          # to find coordinates
-        if event.type == pygame.MOUSEBUTTONDOWN:
             world_x = event.pos[0] + camera_x
             world_y = event.pos[1] + camera_y
-            print(f"World Coordinates: ({world_x}, {world_y})") 
-            
-            mouse_x, mouse_y = event.pos
-            for i, weapon_name in enumerate(inventory.items):
-                rect = pygame.Rect(50 + i*60, screen_height-60, 50, 50)
-                if rect.collidepoint(mouse_x, mouse_y):
-                   selected_index = i
-        
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            print(f"World Coordinates: ({world_x}, {world_y})")
+
             handle_inventory_click(event.pos, player, inventory, screen_height)
 
-        if event.type == pygame.KEYDOWN:
-           
-           
-           # Collect Weapons
-           if event.key == pygame.K_r:
-               weapon_collected = False
-               for name, weapon in L1Weapons.items():
-                   if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
-                    weapon["collected"] = True
-                    Weapons[name]["collected"] = True
-                    unlock_sound.play()
-                    inventory.add_item(name)
-                    weapon_collected = True
+        # =========================
+        # TEXT INPUT (THIS IS THE KEY FIX)
+        # =========================
+        elif event.type == pygame.TEXTINPUT:
+            if code_active:
+                code_input += event.text
 
-                    if pieces_collected() == 3 and not main_weapon_unlocked:
-                        main_weapon_unlocked = True
-                        Weapons["MWfull"]["collected"] = True
-                        inventory.remove_item("MWpiece1")
-                        inventory.remove_item("MWpiece2")
-                        inventory.remove_item("MWpiece3")
-                        inventory.add_item("MWfull")
-                        main_weapon_popup_shown = True
-                        popup_start_time = pygame.time.get_ticks()
-                        mw_sound.play()
+        # =========================
+        # KEYDOWN EVENTS
+        # =========================
+        elif event.type == pygame.KEYDOWN:
+
+            # CLOSE UI
+            if event.key == pygame.K_ESCAPE:
+                mirror_active = False
+
+            if event.key == pygame.K_c:
+                code_active = False
+                code_message = ""
+
+            # =========================
+            # CODE INPUT MODE (PRIORITY)
+            # =========================
+            if code_active:
+
+                if event.key == pygame.K_BACKSPACE:
+                    code_input = code_input[:-1]
+
+                elif event.key == pygame.K_RETURN:
+                    if code_input == "E472":
+                        room116_117.locked = False
+                        room116_117_door.locked = False
+                        code_message = "Unlocked!"
+                        code_active = False
                     else:
-                        weapon_popup = True
-                        popup_start_time = pygame.time.get_ticks()
-                        popup_message = weapon["popup_text"]
-                    break
+                        code_message = "Wrong code"
+                        code_input = ""
 
                         # Use currectly selected weapons
            if event.key == pygame.K_w:
@@ -547,6 +509,76 @@ while running:
                        salt_rect = pygame.Rect(player.x - 50, player.y, 100, 13)
                        salt_line.append({"rect": salt_rect, 
                                       "placed_time": pygame.time.get_ticks()})                        
+                continue
+
+            # =========================
+            # NORMAL GAME INPUT
+            # =========================
+
+            if event.key == pygame.K_r:
+
+                # =========================
+                # 1. CODE INPUT TRIGGERS (HIGHEST PRIORITY)
+                # =========================
+                if room116_117.check_collision(player_rect) and room116_117.locked:
+                    code_active = True
+                    code_input = ""
+                    code_message = "Enter code:"
+                    continue
+
+                # =========================
+                # 2. SPECIAL OBJECTS
+                # =========================
+                if player_rect.colliderect(room113_mirror_rect):
+                    mirror_active = True
+                    print("Mirror activated")
+                    continue
+
+                # =========================
+                # 3. WEAPON PICKUP SYSTEM
+                # =========================
+                weapon_collected = False
+
+                for name, weapon in L1Weapons.items():
+                    if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
+                        weapon["collected"] = True
+                        Weapons[name]["collected"] = True
+                        unlock_sound.play()
+                        inventory.add_item(name)
+                        weapon_collected = True
+
+                        if pieces_collected() == 3 and not main_weapon_unlocked:
+                            main_weapon_unlocked = True
+                            Weapons["MWfull"]["collected"] = True
+                            inventory.remove_item("MWpiece1")
+                            inventory.remove_item("MWpiece2")
+                            inventory.remove_item("MWpiece3")
+                            inventory.add_item("MWfull")
+                            main_weapon_popup_shown = True
+                            popup_start_time = pygame.time.get_ticks()
+                            mw_sound.play()
+                        else:
+                            weapon_popup = True
+                            popup_start_time = pygame.time.get_ticks()
+                            popup_message = weapon["popup_text"]
+
+                        break
+
+                if weapon_collected:
+                    continue
+
+                # =========================
+                # 4. PUZZLE KEY AREA
+                # =========================
+                if player_rect.colliderect(PuzzleL1["KeyArea"]["zone"]) and not PuzzleL1["KeyArea"]["collected"]:
+                    PuzzleL1["KeyArea"]["active"] = True
+                    active_puzzle = PuzzleL1["KeyArea"]
+                    continue
+
+                # =========================
+                # 5. DEFAULT INTERACTION
+                # =========================
+                object_interaction.try_interact(player_rect)
 
 
     # Player Movement
@@ -554,6 +586,7 @@ while running:
         keys = None
     else:
         keys = pygame.key.get_pressed()
+
 
     # Active collision walls
     active_walls = normal_walls.copy()
@@ -594,22 +627,26 @@ while running:
 
     
 
-    # Move recepionist and ghost
+    # =========================
+    # ENEMY UPDATE (CLEAN FIX)
+    # =========================
     if not game_over_system.is_game_over():
-        if not receptionist.defeat:
-           receptionist.update(
-            player.x,
-            player.y,
-            blocked,
-            active_walls,
-        )
 
-    # Move ghost
-    if not ghost.defeat:
-       ghost.update(
-        player.x,
-        player.y
-    )
+        # Move receptionist
+        if not receptionist.defeat:
+            receptionist.update(
+                player.x,
+                player.y,
+                blocked,
+                active_walls,
+            )
+
+        # Move ghost
+        if not ghost.defeat:
+            ghost.update(
+                player.x,
+                player.y
+            )
 
     # GAME OVER CHECK (ghost collision)
     ghost_rect = pygame.Rect(
@@ -660,6 +697,22 @@ while running:
     # Draw everything
     screen.fill((0, 0, 0))
 
+    scene_manager.update()
+#ending
+    if (
+        receptionist.defeat
+        and ghost.defeat
+        and not room116_door.is_locked()
+        and not room117_door.is_locked()
+        and EXIT_DOOR_KEY in inventory.items
+        and not ending_triggered
+    ):
+        ending_triggered = True
+        print("ENDING READY")
+
+
+
+
     # Draw map
     draw_map(screen, camera_x, camera_y)
 
@@ -700,6 +753,46 @@ while running:
 
     for i in range(game_over_system.lives):
         screen.blit(heart_img, (20 + i * 55, 20))
+
+    # =========================
+    # R PROMPTS (DRAW SECTION)
+    # =========================
+
+    # Mirror R prompt
+    if player_rect.colliderect(room113_mirror_rect):
+        text = font.render("R", True, (255, 255, 255))
+        text_rect = text.get_rect(
+            center=(
+                room113_mirror_rect.centerx - camera_x,
+                room113_mirror_rect.y - camera_y - 20
+            )
+        )
+        screen.blit(text, text_rect)
+
+    # Code door R prompt
+    if room116_117.check_collision(player_rect) and room116_117.locked:
+        text = font.render("R", True, (255, 255, 255))
+        text_rect = text.get_rect(
+            center=(
+                room116_117.rect.centerx - camera_x,
+                room116_117.rect.y - camera_y - 20
+            )
+        )
+        screen.blit(text, text_rect)
+
+    # =========================
+    # CODE INPUT UI
+    # =========================
+    if code_active:
+        box = pygame.Rect(300, 250, 600, 200)
+        pygame.draw.rect(screen, (255, 255, 255), box)
+        pygame.draw.rect(screen, (0, 0, 0), box, 2)
+
+        msg = font.render(code_message, True, (0, 0, 0))
+        screen.blit(msg, (box.x + 20, box.y + 20))
+
+        input_text = font.render(code_input, True, (0, 0, 0))
+        screen.blit(input_text, (box.x + 20, box.y + 80))
 
 # WEAPON PART
     # hide popup
@@ -866,21 +959,65 @@ while running:
             save_level1()
 
     # Press E to unlock Exit Door
-    if exit_trigger.check_collision(player_rect):
-        
-        if(
-            EXIT_DOOR_KEY in inventory.items
-            and keys[pygame.K_e] 
-            and exit_door.is_locked()
+        # =========================
+        # ENDING READY CHECK (ALWAYS RUNS)
+        # =========================
+        if (
+            receptionist.defeat
+            and ghost.defeat
+            and not room116_door.is_locked()
+            and not room117_door.is_locked()
+            and EXIT_DOOR_KEY in inventory.items
         ):
-            inventory.use_item(
-                EXIT_DOOR_KEY,
-                exit_door
-            )
+            ending_triggered = True
 
             on_game_end()  # Trigger game end cutscene
 
+        # =========================
+        # EXIT DOOR INTERACTION
+        # =========================
+
+    if exit_trigger.check_collision(player_rect):
+
+        # 1. ENDING (HIGHEST PRIORITY)
+        if (
+            ending_triggered
+            and keys[pygame.K_e]
+            and EXIT_DOOR_KEY in inventory.items
+            and not exit_door.is_locked()
+                    ):
+            print("ENDING STARTED")
+
             save_level1()
+
+            save_data = {
+                "items": inventory.items,
+                "uses": {
+                    name: Weapons[name].get("uses", None)
+                    for name in inventory.items
+                    if name in Weapons
+                }
+            }
+
+            with open("save_inventory.json", "w") as f:
+                json.dump(save_data, f)
+
+            on_game_end()
+
+            pygame.quit()
+            subprocess.run(["python", "endingscene.py"])
+            running = False
+
+        # 2. NORMAL UNLOCK
+        elif (
+            EXIT_DOOR_KEY in inventory.items
+            and keys[pygame.K_e]
+            and exit_door.is_locked()
+            and not ending_triggered
+        ):
+            inventory.use_item(EXIT_DOOR_KEY, exit_door)
+            save_level1()
+   
 
     # Sync trigger status with door status
     security_room.locked = security_door.is_locked()
@@ -965,11 +1102,26 @@ while running:
 
                 result = game_over_system.handle_click(event.pos, player, inventory, Weapons, object_interaction, PuzzleL1, Clue)
 
+
+
                 if result == "retry":
                     reset_level1() # reset all save files and restart the game
                     pygame.quit()  # close current window game
                     subprocess.run([sys.executable, "level1_map.py"])  # restart level 1
                     sys.exit()  # exit the current script
+
+                    # reset player
+                    player.x, player.y = player_spawn
+
+                    # reset enemies
+                    receptionist.x, receptionist.y = receptionist_spawn
+                    receptionist.defeat = False
+
+                    ghost.x, ghost.y = ghost_spawn
+                    ghost.defeat = False
+
+                    # reset lives
+                    game_over_system.lives = 3
 
                 elif result == "quit":
                     reset_game() # reset all save files and restart the game
@@ -1000,6 +1152,7 @@ while running:
         screen.blit(text, text_rect)
 
         pygame.display.flip()
+
         continue
 
     pygame.display.flip()
