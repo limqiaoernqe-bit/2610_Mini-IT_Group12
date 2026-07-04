@@ -270,6 +270,31 @@ def save_level1():
     with open("save_level1.json", "w") as f:
         json.dump(data, f, indent=4)
 
+def check_level1_completion():
+    global weapon_popup, popup_message, popup_start_time
+
+    # Already gave the key before
+    if level1_save.get("exit_key_given", False):
+        return
+
+    # Check ALL objectives
+    if (
+        receptionist.defeat
+        and ghost.defeat
+        and scene_manager.finished["mark"]
+        and scene_manager.finished["james"]
+    ):
+
+        inventory.add_item(EXIT_DOOR_KEY)
+
+        level1_save["exit_key_given"] = True
+
+        weapon_popup = True
+        popup_message = "You got the Exit Key!"
+        popup_start_time = pygame.time.get_ticks()
+
+        save_level1()
+
 
 # Restore doors
 security_door.locked = not level1_save["security_room_unlocked"]
@@ -514,10 +539,10 @@ while running:
                         room116_117_door.locked = False
                         save_level1()
                         
-                        code_active = False
-
                         success_popup = True
                         success_popup_start = pygame.time.get_ticks()
+
+                        code_active = False
 
                         play_james_scene = True
                     else:
@@ -701,25 +726,6 @@ while running:
     if not receptionist.defeat and receptionist.rect.colliderect(player_rect):
         game_over_system.on_caught(player)
 
-    # Give Exit Key after ALL objectives are completed
-    if(
-        receptionist.defeat
-        and ghost.defeat
-        and not room116_door.is_locked()
-        and not room116_117_door.is_locked()
-        and not level1_save.get("exit_key_given", False)
-    ):
-        inventory.add_item(EXIT_DOOR_KEY)
-
-        # Mark that the Exit Key has already been awarded
-        level1_save["exit_key_given"] = True
-
-        popup_message = "You got the Exit Key!"
-        weapon_popup = True
-        popup_start_time = pygame.time.get_ticks()
-
-        save_level1()  # Save after defeating enemies and getting the exit key
-
     # Camera System
     camera_x = player.x - screen_width // 2
     camera_y = player.y - screen_height // 2
@@ -731,8 +737,8 @@ while running:
     if (
         receptionist.defeat
         and ghost.defeat
-        and not room116_door.is_locked()
-        and not room117_door.is_locked()
+        and scene_manager.finished["mark"]
+        and scene_manager.finished["james"]
         and EXIT_DOOR_KEY in inventory.items
         and not ending_triggered
     ):
@@ -997,8 +1003,8 @@ while running:
         if (
             receptionist.defeat
             and ghost.defeat
-            and not room116_door.is_locked()
-            and not room117_door.is_locked()
+            and scene_manager.finished["mark"]
+            and scene_manager.finished["james"]
             and EXIT_DOOR_KEY in inventory.items
         ):
             ending_triggered = True
@@ -1045,7 +1051,6 @@ while running:
             EXIT_DOOR_KEY in inventory.items
             and keys[pygame.K_e]
             and exit_door.is_locked()
-            and not ending_triggered
         ):
             inventory.use_item(EXIT_DOOR_KEY, exit_door)
             save_level1()
@@ -1161,6 +1166,8 @@ while running:
                     subprocess.run([sys.executable, "main.py"])
                     sys.exit()
 
+        # Check if player has completed all objectives to unlock the exit key
+        check_level1_completion()
         pygame.display.flip()
         continue
 # mirror
