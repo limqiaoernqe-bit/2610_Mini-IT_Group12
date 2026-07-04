@@ -11,7 +11,7 @@ pygame.mixer.init()
 
 # load and start background music ONCE
 pygame.mixer.music.load("assets/arthurhale-scary-horror-music-2-516875.mp3")
-pygame.mixer.music.set_volume(0.5)  # optional
+pygame.mixer.music.set_volume(0.05)  # optional
 pygame.mixer.music.play(-1)  # -1 = infinite loop
 
 # screen setup
