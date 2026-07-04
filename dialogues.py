@@ -70,9 +70,10 @@ JANITOR_DIALOGUE = [
     ("COMMAND", "move_path", [
         
     (1056, 1442), #fix coordinates
-    (1420, 1439),
-    (1625, 1512),
-    (1498, 1910)
+    (1126, 1492),
+    (1532, 1485),
+    (1529, 1919),
+    (1453, 1916)
 
     ]),
 
@@ -85,7 +86,8 @@ JANITOR_DIALOGUE = [
 
     ("COMMAND", "move_path", [
         
-    (1625, 1512)
+    (1472, 1521),
+    (1453, 1505)
 
     ]),
 
@@ -93,6 +95,14 @@ JANITOR_DIALOGUE = [
     ("Narrator", None,"Mia tries to return to her room but the door is now locked."),
 
     ("Narrator",None, "She notices a note on the floor."),
+
+    ("COMMAND", "move_path", [
+
+    (1666, 1513) 
+    
+    ]),
+
+
 
     ("Note",None, "If you want to see them again, find the keys. He's watching. Find the clues before he finds you."),
 
@@ -111,8 +121,8 @@ JANITOR_DIALOGUE = [
 
     ("COMMAND", "move_path", [
         
-    (1872,2064),
-    (2256, 2112)
+    (1664, 2104),
+    (2138, 2126)
 
     ]),
 
@@ -126,7 +136,7 @@ JANITOR_DIALOGUE = [
     ("Objectives",None, "Rescue your friends."),
     ("Objectives", None,"Use keys to help save your friends."),
     ("Objectives", None,"Avoid and defeat the janitor."),
-    ("Objectives",None, "Once the janitor is defeated, Level 2 will unlock."),
+    ("Objectives",None, "Once the janitor is defeated, Level 1 will unlock."),
 
 ]
 
