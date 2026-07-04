@@ -1,9 +1,10 @@
 {
-    "security_room_unlocked": false,
+    "security_room_unlocked": true,
     "room116_unlocked": true,
     "room117_unlocked": false,
-    "connecting_door_unlocked": false,
+    "connecting_door_unlocked": true,
     "exit_door_unlocked": false,
-    "receptionist_defeated": false,
-    "ghost_defeated": false
+    "receptionist_defeated": true,
+    "ghost_defeated": true,
+    "exit_key_given": true
 }

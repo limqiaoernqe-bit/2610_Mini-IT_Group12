@@ -1,1 +1,1 @@
-{"items": [], "uses": {}}
+{"items": ["MWpiece1", "BananaPeel", "CleaningSpray", "SECURITY_BADGE", "BaseballBat"], "uses": {"MWpiece2": 0, "Salt": 3, "KitchenKnife": null, "MWpiece3": 0, "MWfull": null, "MWpiece1": 0, "BananaPeel": 3, "CleaningSpray": 3, "BaseballBat": null}, "collected": {"MWpiece2": false, "Salt": false, "KitchenKnife": false, "MWpiece3": false, "MWfull": false, "MWpiece1": true, "BananaPeel": true, "CleaningSpray": true, "BaseballBat": true}}

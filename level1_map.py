@@ -474,6 +474,14 @@ while running:
         # =========================
         elif event.type == pygame.KEYDOWN:
 
+            # Cutscene control
+            if scene_manager.active:
+                if event.key == pygame.K_SPACE:
+                    scene_manager.update()
+
+                continue
+
+
             # Puzzle input
             if active_puzzle and active_puzzle["active"]:
                 handle_puzzle_input(
@@ -628,7 +636,7 @@ while running:
     if exit_door.is_locked():
         active_walls += exit_door_walls
     
-    if not game_over_system.is_game_over():
+    if not game_over_system.is_game_over() and not scene_manager.active:
         keys = pygame.key.get_pressed()
         player.update(keys, active_walls)
 
@@ -685,7 +693,7 @@ while running:
         40
     )
 
-    if not game_over_system.is_game_over():
+    if not game_over_system.is_game_over() and not scene_manager.active:
 
         if not ghost.defeat and ghost_rect.colliderect(player_rect):
             game_over_system.on_caught(player)
@@ -719,7 +727,6 @@ while running:
     # Draw everything
     screen.fill((0, 0, 0))
 
-    scene_manager.update()
 #ending
     if (
         receptionist.defeat

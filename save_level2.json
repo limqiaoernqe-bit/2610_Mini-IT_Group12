@@ -6,13 +6,11 @@
     "stairs_unlocked": true,
     "room210_key_collected": false,
     "janitor_key_collected": false,
-    "security_badge_collected": false,
-    "locker_unlocked": false,
-    "toolbox_collected": false,
-    "stool_collected": false,
-    "box_collected": false,
-    "locker_collected": false,
-    "treadmill_completed": false
     "security_badge_collected": true,
-    "locker_unlocked": true
+    "locker_unlocked": true,
+    "toolbox_collected": true,
+    "stool_collected": true,
+    "box_collected": true,
+    "locker_collected": true,
+    "treadmill_completed": true
 }
