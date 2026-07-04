@@ -7,5 +7,9 @@
     "room210_key_collected": false,
     "janitor_key_collected": false,
     "security_badge_collected": false,
-    "locker_unlocked": false
+    "locker_unlocked": false,
+    "toolbox_collected": false,
+    "stool_collected": false,
+    "box_collected": false,
+    "locker_collected": false
 }

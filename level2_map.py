@@ -95,6 +95,8 @@ try:
         for weapon_name, collected in save_data.get("collected", {}).items():
             if weapon_name in Weapons:
                 Weapons[weapon_name]["collected"] = collected
+            if weapon_name in L2Weapons:
+                L2Weapons[weapon_name]["collected"] = collected
 
 except (FileNotFoundError, json.JSONDecodeError):
     pass
@@ -304,6 +306,27 @@ stairs_trigger.locked = not level2_save["stairs_unlocked"]
 # Restore locker state
 locker_unlocked = level2_save.get("locker_unlocked", False)
 
+# Restore collected objects
+object_interaction.zones["toolbox"]["collected"] = level2_save.get(
+    "toolbox_collected",
+    False
+)
+
+object_interaction.zones["stool"]["collected"] = level2_save.get(
+    "stool_collected",
+    False
+)
+
+object_interaction.zones["box"]["collected"] = level2_save.get(
+    "box_collected",
+    False
+)
+
+object_interaction.zones["locker"]["collected"] = level2_save.get(
+    "locker_collected",
+    False
+)
+
 # Save Level 2 progress
 def save_level2():
     data = {
@@ -317,7 +340,12 @@ def save_level2():
         "janitor_key_collected": janitor_key_collected,
         "security_badge_collected": security_badge_collected,
 
-        "locker_unlocked": locker_unlocked
+        "locker_unlocked": locker_unlocked,
+
+        "toolbox_collected": object_interaction.zones["toolbox"]["collected"],
+        "stool_collected": object_interaction.zones["stool"]["collected"],
+        "box_collected": object_interaction.zones["box"]["collected"],
+        "locker_collected": object_interaction.zones["locker"]["collected"]
     }
 
     with open("save_level2.json", "w") as f:
@@ -562,6 +590,7 @@ while running:
                 weapon_collected = False
                 for name, weapon in L2Weapons.items():
                     if weapon["zone"] is not None and player_rect.colliderect(weapon["zone"]) and not weapon["collected"]:
+                        weapon["collected"] = True
                         Weapons[name]["collected"] = True
                         unlock_sound.play()
                         inventory.add_item(name)
